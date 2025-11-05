@@ -1,0 +1,8 @@
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:var(--font)}
+a{color:var(--accent);text-decoration:none}
+h1,h2,h3{margin:.2rem 0 .6rem}
+.muted{color:var(--muted)}
+img{display:inline-block;vertical-align:middle}
+button,input,select{font:inherit}

@@ -1,0 +1,5 @@
+[
+  { "id": 101, "ts": 1710000000000, "valueMgdl": 118, "cat": "Normal",     "patientId": 1 },
+  { "id": 102, "ts": 1710086400000, "valueMgdl": 192, "cat": "Abnormal",   "patientId": 1 },
+  { "id": 103, "ts": 1710172800000, "valueMgdl": 138, "cat": "Borderline", "patientId": 2 }
+]
