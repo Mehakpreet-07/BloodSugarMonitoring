@@ -1,0 +1,97 @@
+/* ========== NAV (sidebar) ========== */
+.side .nav{
+  display:flex;
+  flex-direction:column;     /* vertical links */
+  gap:.5rem;
+}
+.side .nav a{
+  display:block;
+  color:var(--ink);
+  padding:.6rem .75rem;
+  border-radius:10px;
+  text-decoration:none;
+  transition:background .12s ease, transform .08s ease;
+}
+.side .nav a:hover{ background:#eef2f7; }
+.side .nav a.active{ background:#e8eef6; font-weight:600; }
+
+/* ========== CARDS / PANELS ========== */
+.panel{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:var(--radius-lg);
+  padding:1rem 1.1rem;
+  box-shadow:var(--shadow);
+}
+
+/* ========== KPI CARDS ========== */
+.kpi h3{ margin:0 0 .25rem; font-size:.92rem; color:var(--muted); font-weight:700; }
+.kpi .val{ font-size:1.9rem; font-weight:900; letter-spacing:.2px; }
+.badge{ display:inline-block; padding:.15rem .55rem; border-radius:999px; font-size:.75rem; }
+.b-ok{   background:rgba(20,143,74,.12);  color:var(--ok); }
+.b-warn{ background:rgba(174,122,0,.12);  color:var(--warn); }
+.b-bad{  background:rgba(192,53,43,.12);  color:var(--bad); }
+
+/* ========== TABLES ========== */
+.list{ width:100%; border-collapse:collapse; }
+.list th,.list td{ border-bottom:1px solid var(--line); padding:.6rem .5rem; text-align:left; }
+.list th{ color:var(--muted); font-weight:700; font-size:.9rem; }
+.list tr:hover td{ background:#f5f7fb; }
+
+/* ========== STATUS PILLS ========== */
+.pill{ padding:.15rem .55rem; border-radius:999px; font-size:.78rem; font-weight:600; }
+.p-Normal{     background:rgba(20,143,74,.12);   color:var(--ok); }
+.p-Borderline{ background:rgba(174,122,0,.12);   color:var(--warn); }
+.p-Abnormal{   background:rgba(192,53,43,.12);   color:var(--bad); }
+
+/* ========== FORM CONTROLS ========== */
+.tools{ display:flex; gap:.6rem; flex-wrap:wrap; margin:.6rem 0 0; }
+input,select,button{
+  background:#f3f6fb;
+  color:var(--ink);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:.55rem .65rem;
+}
+button{ cursor:pointer; }
+button.primary{ background:#e8eef9; border-color:#cfe0ff; }
+button:hover{ filter:brightness(1.05); }
+button:active{ transform:translateY(1px); }
+
+/* ========== HEADER AVATAR & MENU ========== */
+.avatar{ display:flex; align-items:center; gap:.6rem; position:relative; }
+.avatar .pic{ width:36px; height:36px; border-radius:999px; background:#eef2f7; border:1px solid var(--line); }
+.avatar button{ background:transparent; border:0; color:var(--ink); cursor:pointer; font-weight:700; }
+.menu{
+  position:absolute; right:0; top:48px;
+  background:var(--panel); border:1px solid var(--line);
+  border-radius:12px; min-width:180px; display:none;
+  box-shadow:var(--shadow);
+}
+.menu a{ display:block; padding:.65rem .8rem; color:var(--ink); }
+.menu a:hover{ background:#eef2f7; }
+
+/* ========== CHART CANVAS ========== */
+canvas{
+  width:100%; height:260px;
+  background:#f3f6fb;
+  border:1px solid var(--line);
+  border-radius:10px;
+}
+
+/* ========== WEATHER CARD ========== */
+#weatherPanel .row{ display:flex; align-items:center; gap:.7rem; }
+#weatherPanel strong{ font-weight:800; }
+
+/* patient detail drawer */
+.drawer {
+  position: fixed; top: 0; right: 0; height: 100vh; width: 380px;
+  background: var(--panel); border-left: 1px solid var(--line);
+  box-shadow: var(--shadow); transform: translateX(100%); transition: transform .18s ease;
+  padding: 1rem; z-index: 50; overflow:auto;
+}
+.drawer.open { transform: translateX(0); }
+.drawer .close { float:right; background:transparent; border:0; font-weight:700; cursor:pointer; }
+.drawer h3 { margin-top:.2rem; }
+.drawer form .row { display:flex; gap:.5rem; flex-wrap:wrap; margin:.5rem 0; }
+.drawer form input[type="number"]{ width:120px; }

@@ -1,8 +1,10 @@
-*{box-sizing:border-box}
-html,body{height:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font:var(--font)}
+body{
+  margin:0;
+  background:
+    radial-gradient(1200px 800px at 15% -10%, rgba(37,99,235,.06), transparent 60%),
+    radial-gradient(1200px 800px at 120% -20%, rgba(20,143,74,.06), transparent 60%),
+    var(--bg);
+  color:var(--ink);
+  font:var(--font);
+}
 a{color:var(--accent);text-decoration:none}
-h1,h2,h3{margin:.2rem 0 .6rem}
-.muted{color:var(--muted)}
-img{display:inline-block;vertical-align:middle}
-button,input,select{font:inherit}

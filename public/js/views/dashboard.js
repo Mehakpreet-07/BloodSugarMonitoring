@@ -2,6 +2,9 @@ import { getWeather } from '../api/weather.js';
 import { drawLine } from '../components/chart.js';
 import { rowsHtml } from '../components/table.js';
 import { DAY, now, fmtDate } from '../utils/dates.js';
+import { getKpis } from '../api/kpis.js';
+import { listAlerts }   from '../api/alerts.js';
+import { listPatients } from '../api/patients.js';
 
 export function renderDashboard(root){
   root.innerHTML = `
@@ -52,13 +55,82 @@ export function renderDashboard(root){
       <div class="tools"><a href="#/patients">Go to Patients</a></div>
     </section>
   `;
+// Alerts → table
+listAlerts().then(alerts => {
+  document.getElementById('alertsBody').innerHTML = alerts.map(a => `
+    <tr>
+      <td>${a.when}</td>
+      <td>${a.name}</td>
+      <td><span class="pill p-${a.cat}">${a.cat}</span></td>
+      <td>${a.note}</td>
+    </tr>`).join('');
+
+  // "View all alerts" button uses same data
+  document.getElementById('viewAllAlerts').onclick = () => {
+    const panel = document.getElementById('alertsPanel');
+    panel.innerHTML = `
+      <h2>All Alerts</h2>
+      <div class="tools">
+        <input id="alertSearch" placeholder="Search patient…">
+        <select id="alertCat"><option value="">All</option><option>Abnormal</option><option>Borderline</option><option>Normal</option></select>
+        <button id="applyAlertFilter" class="primary">Apply</button>
+        <button id="backToRecent">Back</button>
+      </div>
+      <table class="list"><thead><tr><th>When</th><th>Patient</th><th>Category</th><th>Note</th></tr></thead>
+      <tbody id="allAlertsBody"></tbody></table>
+    `;
+    const render = list => document.getElementById('allAlertsBody').innerHTML =
+      list.map(a => `<tr><td>${a.when}</td><td>${a.name}</td><td><span class="pill p-${a.cat}">${a.cat}</span></td><td>${a.note}</td></tr>`).join('');
+    const apply = () => {
+      const q = document.getElementById('alertSearch').value.trim().toLowerCase();
+      const c = document.getElementById('alertCat').value;
+      render(alerts.filter(a => (!q || a.name.toLowerCase().includes(q)) && (!c || a.cat === c)));
+    };
+    document.getElementById('applyAlertFilter').onclick = apply;
+    document.getElementById('backToRecent').onclick = () => location.hash = '#/dashboard';
+    render(alerts);
+  };
+}).catch(console.error);
+
+// Patients snapshot → table
+listPatients().then(patients => {
+  document.getElementById('patientsBody').innerHTML = patients.map(p => `
+    <tr>
+      <td>${p.name}</td>
+      <td>${p.last}</td>
+      <td><span class="pill p-${p.cat}">${p.cat}</span></td>
+      <td><a href="#/patients">Open chart</a></td>
+    </tr>`).join('');
+}).catch(console.error);
+
+
+
+ // KPIs (patients, alerts, etc.)
+getKpis().then(k => {
+  document.getElementById('kpiPatients').textContent = k.patients;
+  document.getElementById('kpiAlerts').textContent   = k.alerts;
+  document.getElementById('kpiCritical').textContent = `${k.critical} critical`;
+  document.getElementById('kpiConsults').textContent = k.consults;
+  document.getElementById('kpiPending').textContent  = `${k.pending} pending`;
+}).catch(() => {
+  // optional fallback
+  document.getElementById('kpiPatients').textContent = '—';
+  document.getElementById('kpiAlerts').textContent   = '—';
+  document.getElementById('kpiCritical').textContent = '—';
+  document.getElementById('kpiConsults').textContent = '—';
+  document.getElementById('kpiPending').textContent  = '—';
+});
 
   // Weather
-  getWeather().then(({city,desc,temp,hum,icon})=>{
-    document.getElementById('weatherInfo').innerHTML =
-      `<div class="row"><img src="https://openweathermap.org/img/wn/${icon}.png" alt="${desc}" width="48" height="48">
-        <div><strong>${city}</strong><br>${desc} • ${temp}°C${hum?` • ${hum}% humidity`:''}</div></div>`;
-  }).catch(()=> document.getElementById('weatherInfo').textContent='Unable to load weather.');
+
+
+getWeather().then(({city,desc,temp,hum,icon})=>{
+  document.getElementById('weatherInfo').innerHTML =
+    `<div class="row">
+       <img src="https://openweathermap.org/img/wn/${icon}.png" alt="${desc}" width="48" height="48">
+       <div><strong>${city}</strong><br>${desc} • ${temp}°C${hum?` • ${hum}% humidity`:''}</div>
+     </div>`;
+}).catch(()=> document.getElementById('weatherInfo').textContent='Unable to load weather.');
 
   // Demo data for chart + table
   const pts = [
