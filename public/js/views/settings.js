@@ -1,7 +1,7 @@
 import { getThresholds, putThresholds } from '../api/settings.js';
 
 export async function renderSettings(root){
-  const t = await getThresholds(); // {normalMax, borderlineMax, unit}
+  const t = await getThresholds();
   root.innerHTML = `
     <section class="panel">
       <h2>Settings</h2>

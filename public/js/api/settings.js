@@ -6,7 +6,7 @@ import { USE_MOCKS } from '../config.js';
 const base = USE_MOCKS ? 'mock' : '/api';
 
 const LS_KEY = 'bs_thresholds_v1';
-const DEFAULTS = { normalMax: 140, borderlineMax: 180, unit: 'mgdl' };
+const DEFAULTS = { normalMax: 120, borderlineMax: 180, unit: 'mgdl' };
 
 // Safe JSON helper
 async function safeJson(res, context = '') {

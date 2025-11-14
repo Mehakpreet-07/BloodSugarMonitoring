@@ -95,3 +95,6 @@ canvas{
 .drawer h3 { margin-top:.2rem; }
 .drawer form .row { display:flex; gap:.5rem; flex-wrap:wrap; margin:.5rem 0; }
 .drawer form input[type="number"]{ width:120px; }
+
+/* components.css */
+.panel{ padding:1.2rem 1.25rem; }

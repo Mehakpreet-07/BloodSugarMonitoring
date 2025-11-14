@@ -8,3 +8,8 @@ export async function listAlerts(params = {}) {
   if (!r.ok) throw new Error('alerts fetch failed');
   return r.json();
 }
+
+export async function listPatientAlerts(patientId){
+  const all = await listAlerts();
+  return all.filter(a => String(a.patientId) === String(patientId));
+}

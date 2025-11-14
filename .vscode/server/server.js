@@ -34,3 +34,6 @@ const server = http.createServer((req,res)=>{
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, ()=> console.log(`Dev server running → http://localhost:${PORT}`));
+
+// public/js/config.js
+export const USE_MOCKS = false;

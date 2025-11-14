@@ -1,6 +1,7 @@
 import { mountHeader } from './components/header.js';
 import { mountSidebar } from './components/sidebar.js';
 import { router, goto } from './router.js';
+import { store } from './state/store.js';
 
 const app = document.getElementById('app');
 app.innerHTML = `
@@ -15,5 +16,9 @@ app.innerHTML = `
 
 mountHeader(document.getElementById('head'));
 mountSidebar(document.getElementById('side'), (hash)=> goto(hash));
-router();        // initial render
-window.addEventListener('hashchange', router);
+
+// load session, then route
+store.hydrate().then(()=> {
+  router();
+  window.addEventListener('hashchange', router);
+});

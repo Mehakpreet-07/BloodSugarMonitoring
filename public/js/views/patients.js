@@ -1,13 +1,12 @@
 // public/js/views/patients.js
 import { listPatients, getPatientReadings } from '../api/patients.js';
-import { addReading } from '../api/readings.js';
-import { rowsHtml } from '../components/table.js';
-import { drawLine } from '../components/chart.js';
-import { getThresholds } from '../api/settings.js';
+import { addReading }                     from '../api/readings.js';
+import { getThresholds }                  from '../api/settings.js';
 import { toDisplay, categorizeByThresholds } from '../utils/units.js';
+import { rowsHtml }                       from '../components/table.js';
+import { drawLine }                       from '../components/chart.js';
 
 export async function renderPatients(root){
-  // ---------- View ----------
   root.innerHTML = `
     <section class="panel">
       <h2>Patients</h2>
@@ -28,7 +27,6 @@ export async function renderPatients(root){
       </table>
     </section>
 
-    <!-- Right-side drawer -->
     <aside class="drawer" id="drawer" aria-hidden="true">
       <button class="close" id="drawerClose">✕</button>
       <h3 id="dName">Patient</h3>
@@ -48,22 +46,22 @@ export async function renderPatients(root){
         </div>
         <button class="primary" type="submit">Add</button>
       </form>
-      <p class="muted" id="hint" style="margin-top:.4rem"></p>
+      <p class="muted" style="margin-top:.4rem">
+        Auto categorized by thresholds in Settings.
+      </p>
     </aside>
   `;
 
-  // ---------- State & refs ----------
+  // state
   let data = await listPatients();
   let sortKey = 'name', sortDir = 1;
+  const drawer = root.querySelector('#drawer');
+  const closeBtn = root.querySelector('#drawerClose');
+  const q = root.querySelector('#q');
+  const go = root.querySelector('#go');
+  const body = root.querySelector('#body');
+  const table = root.querySelector('#ptbl');
 
-  const drawer  = root.querySelector('#drawer');
-  const closeBtn= root.querySelector('#drawerClose');
-  const q       = root.querySelector('#q');
-  const go      = root.querySelector('#go');
-  const body    = root.querySelector('#body');
-  const table   = root.querySelector('#ptbl');
-
-  // ---------- Helpers ----------
   function renderRows(rows){
     body.innerHTML = rowsHtml(rows.map(p => [
       p.name,
@@ -71,13 +69,12 @@ export async function renderPatients(root){
       `<span class="pill p-${p.cat}">${p.cat}</span>`,
       `<a href="#" data-id="${p.id}" class="open">Open chart</a>`
     ]));
-
     body.querySelectorAll('a.open').forEach(a=>{
       a.onclick = async (e)=>{
         e.preventDefault();
         const id = a.getAttribute('data-id');
         const p  = data.find(x => String(x.id) === String(id));
-        if (p) openDrawer(p);
+        openDrawer(p);
       };
     });
   }
@@ -89,44 +86,35 @@ export async function renderPatients(root){
     renderRows(rows);
   }
 
-  // ---------- Events: table/search/sort ----------
   go.onclick = async ()=>{ data = await listPatients(q.value); apply(); };
   table.querySelectorAll('th[data-k]').forEach(th=>{
     th.onclick = ()=>{
       const k = th.getAttribute('data-k');
-      sortDir = (sortKey === k) ? -sortDir : 1;
+      sortDir = (sortKey===k) ? -sortDir : 1;
       sortKey = k;
       apply();
     };
   });
 
-  apply(); // initial paint
+  apply();
 
-  // ---------- Drawer ----------
-  closeBtn.onclick = ()=> {
+  closeBtn.onclick = ()=>{
     drawer.classList.remove('open');
     drawer.setAttribute('aria-hidden','true');
   };
 
   async function openDrawer(p){
-    // Load readings + thresholds/units
     let readings = await getPatientReadings(p.id);
-    const thr  = await getThresholds();              // { normalMax, borderlineMax, unit }
+    const thr  = await getThresholds();
     const unit = thr.unit;
 
-    // Update hint text to reflect current settings
-    const hintEl = root.querySelector('#hint');
-    if (hintEl){
-      hintEl.textContent = `Auto-categorized with current settings: ≤${thr.normalMax} Normal, ≤${thr.borderlineMax} Borderline, >${thr.borderlineMax} Abnormal (${unit === 'mmol' ? 'displayed in mmol/L' : 'mg/dL'}).`;
-    }
+    const withCat = r => ({ ...r, cat: categorizeByThresholds(r.valueMgdl, thr) });
 
-    const withCat = (r) => ({ ...r, cat: categorizeByThresholds(r.valueMgdl, thr) });
-
-    // Header/meta
+    // header/meta
     root.querySelector('#dName').textContent = p.name;
     root.querySelector('#dMeta').textContent = `${p.last} • ${p.cat}`;
 
-    // Recent list (last 7), unit-aware
+    // recent list
     const recent = readings.slice(-7).reverse().map(withCat);
     root.querySelector('#dList').innerHTML = rowsHtml(
       recent.map(r => [
@@ -136,18 +124,18 @@ export async function renderPatients(root){
       ])
     );
 
-    // Mini chart (last 7)
-    const pts = readings.slice(-7).map(withCat).map(r => ({ x: r.ts, y: r.valueMgdl, cat: r.cat }));
+    // chart
+    const pts = readings.slice(-7).map(withCat).map(r => ({ x:r.ts, y:r.valueMgdl, cat:r.cat }));
     drawLine('dChart', pts.length ? pts : [{ x: Date.now(), y: 0, cat: 'Normal' }]);
 
-    // Open drawer
+    // open
     drawer.classList.add('open');
     drawer.setAttribute('aria-hidden','false');
 
-    // Add-reading handler
-    const form   = root.querySelector('#addForm');
-    const valEl  = root.querySelector('#val');
-    const noteEl = root.querySelector('#note');
+    // add form
+    const form  = root.querySelector('#addForm');
+    const valEl = root.querySelector('#val');
+    const noteEl= root.querySelector('#note');
 
     form.onsubmit = async (e)=>{
       e.preventDefault();
@@ -158,9 +146,7 @@ export async function renderPatients(root){
       const res = await addReading(payload);
       if (!res || res.ok !== true) return;
 
-      // Update local state & repaint (unit + thresholds respected)
-      const newRow = { id: res.id || Date.now(), ...payload };
-      readings = readings.concat(newRow);
+      readings = readings.concat({ id: res.id || Date.now(), ...payload });
 
       const recent2 = readings.slice(-7).reverse().map(withCat);
       root.querySelector('#dList').innerHTML = rowsHtml(
@@ -171,20 +157,11 @@ export async function renderPatients(root){
         ])
       );
 
-      const pts2 = readings.slice(-7).map(withCat).map(r => ({ x: r.ts, y: r.valueMgdl, cat: r.cat }));
+      const pts2 = readings.slice(-7).map(withCat).map(r => ({ x:r.ts, y:r.valueMgdl, cat:r.cat }));
       drawLine('dChart', pts2);
 
       valEl.value = '';
       noteEl.value = '';
     };
   }
-
-  // Optional: live re-apply if thresholds are changed on the Settings page
-  document.addEventListener('settings:thresholdsChanged', async () => {
-    const open = drawer.classList.contains('open');
-    if (!open) return;
-    const name = root.querySelector('#dName')?.textContent;
-    const row = (await listPatients()).find(p => p.name === name);
-    if (row) openDrawer(row);
-  });
 }
