@@ -1,6 +1,9 @@
+// api/readings.js
+//function to add new blood sugar reading API call
+
 import { USE_MOCKS } from '../config.js';
 const base = USE_MOCKS ? 'mock' : '/api';
-
+//adds new blood sugar reading to the server or simulates success if using mocks
 export async function addReading(payload){
   // payload: { patientId, ts, valueMgdl, note? }
   if (USE_MOCKS) {

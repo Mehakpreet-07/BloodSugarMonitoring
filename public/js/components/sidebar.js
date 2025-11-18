@@ -9,13 +9,27 @@ export function mountSidebar(node, onNav){
         { hash:'#/register', label:'Register' }
       ];
     }
+
     if (role === 'patient') {
       return [
         { hash:'#/overview', label:'Overview' },
+        { hash:'#/settings', label:'Settings' },
         { hash:'#/profile',  label:'Profile' }
       ];
     }
-    // doctor, admin, staff
+
+    if (role === 'admin') {
+      return [
+        { hash:'#/dashboard', label:'Dashboard' },
+        { hash:'#/patients',  label:'Patients' },
+        { hash:'#/alerts',    label:'Alerts' },
+        { hash:'#/settings',  label:'Settings' },
+        { hash:'#/emails',    label:'Email templates' },
+        { hash:'#/profile',   label:'Profile' }
+      ];
+    }
+
+    // doctor and staff
     return [
       { hash:'#/dashboard', label:'Dashboard' },
       { hash:'#/patients',  label:'Patients' },
@@ -29,6 +43,7 @@ export function mountSidebar(node, onNav){
     const u = store.user;
     const items = linksFor(u?.role);
     const current = location.hash || '#/login';
+
     node.innerHTML = `
       <div class="brand">Blood Sugar</div>
       <nav class="nav">
@@ -40,6 +55,7 @@ export function mountSidebar(node, onNav){
           </a>`).join('')}
       </nav>
     `;
+
     node.querySelectorAll('a[data-hash]').forEach(a=>{
       a.onclick = e=>{
         e.preventDefault();

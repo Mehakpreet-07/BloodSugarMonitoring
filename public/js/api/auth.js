@@ -20,6 +20,26 @@ function seedMockUsers(){
   return users;
 }
 
+const LS_ACT = 'bs_activation_counts_v1';
+
+function readActivationCounts(){
+  try {
+    const raw = localStorage.getItem(LS_ACT);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeActivationCounts(obj){
+  try {
+    localStorage.setItem(LS_ACT, JSON.stringify(obj));
+  } catch {
+    // ignore
+  }
+}
+
+
 function mockUsers(){ return seedMockUsers(); }
 function saveUsers(users){ localStorage.setItem(LS_USERS, JSON.stringify(users)); }
 function saveSession(user){ localStorage.setItem(LS_SESSION, JSON.stringify(user)); }
@@ -73,3 +93,32 @@ export async function registerPatient({ name, email, password }){
   });
   return r.json();
 }
+
+// Resend activation email mock, max 3 times per email
+export async function resendActivation(email){
+  if (USE_MOCKS){
+    const addr = String(email || '').toLowerCase();
+    if (!addr) return { ok:false, error:'Email not provided' };
+
+    const counts = readActivationCounts();
+    const n = (counts[addr] || 0) + 1;
+
+    if (n > 3){
+      return { ok:false, error:'Activation email already sent 3 times. Please contact support.' };
+    }
+
+    counts[addr] = n;
+    writeActivationCounts(counts);
+
+    // In a real system we would trigger an email here
+    return { ok:true, count:n };
+  }
+
+  const r = await fetch(`${base}/auth/resend-activation`, {
+    method:'POST',
+    headers:{ 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  });
+  return r.json();
+}
+

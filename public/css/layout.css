@@ -1,6 +1,6 @@
 /* grid shell */
 .app{
-  display:grid;
+  display:grid; /*to make grid layout*/
   grid-template-columns:260px 1fr;
   min-height:100vh;
 }
@@ -25,7 +25,7 @@
 /* page container */
 .main{
   padding:1.1rem;
-  max-width:1200px;           /* keeps content readable */
+  max-width:1200px;           /* keeps the content readable */
   margin:0 auto;              /* centers content area */
 }
 
@@ -34,11 +34,11 @@
 .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
 .two{grid-template-columns:1.1fr .9fr}
 
-@media (max-width:1200px){
+/* @media (max-width:1200px){
   .kpis{grid-template-columns:1fr 1fr 1fr}
 }
 @media (max-width:1000px){
   .app{grid-template-columns:1fr}
   .two,.kpis{grid-template-columns:1fr}
   .side{position:sticky; top:0; z-index:6}
-}
+} */

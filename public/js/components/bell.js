@@ -2,9 +2,9 @@
 // Bell icon with a small dropdown for recent alerts.
 // Patients see only their own abnormal alerts.
 
-import { listAlerts } from '../api/alerts.js';
-import { store } from '../state/store.js';
-
+import { listAlerts } from '../api/alerts.js';// to get the alerts from the api
+import { store } from '../state/store.js';// to get the user data
+// Mount the bell component inside the given container
 export async function mountBell(container) {
   container.innerHTML = `
     <button id="bellBtn" aria-haspopup="true" aria-expanded="false" title="Alerts"
@@ -18,7 +18,7 @@ export async function mountBell(container) {
   const btn  = container.querySelector('#bellBtn');
   const dot  = container.querySelector('#bellDot');
   const menu = container.querySelector('#bellMenu');
-
+// to load the alerts from the api
   async function load() {
     const all  = await listAlerts();
     const user = store.user;
@@ -31,12 +31,12 @@ export async function mountBell(container) {
       : all;
 
     dot.style.display = data.length ? 'block' : 'none';
-
+// to show the alerts in the drop down menu
     if (!data.length) {
       menu.innerHTML = `<div class="muted" style="padding:.7rem .8rem">No new alerts</div>`;
       return;
     }
-
+// showing only 6 alerts in the drop down menu
     menu.innerHTML = data.slice(0, 6).map(a => `
       <a href="#/alerts" data-alert-item="1" role="menuitem" style="display:block">
         <div style="font-weight:600">
@@ -75,7 +75,7 @@ export async function mountBell(container) {
     // Close the menu
     menu.style.display = 'none';
     btn.setAttribute('aria-expanded', 'false');
-
+// routing to the proper page when clicked on the alert
     const user = store.user;
     if (!user) {
       // Safety fallback, should not happen
