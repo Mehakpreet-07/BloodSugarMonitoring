@@ -72,6 +72,19 @@ export function renderProfile(root){
     return;
   }
 
+  if (role === 'staff') {
+    root.innerHTML = `
+      <section class="panel">
+        <h2>Staff Profile</h2>
+        <p class="muted">Signed in as ${store.user?.name || 'Staff'}.</p>
+        <p class="muted">
+          Supports doctors in monitoring patients and managing daily clinic operations.
+        </p>
+      </section>
+    `;
+    return;
+  }
+
   if (role === 'patient') {
     root.innerHTML = `
       <section class="panel">

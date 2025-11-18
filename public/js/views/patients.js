@@ -1,10 +1,10 @@
 // public/js/views/patients.js
 import { listPatients, getPatientReadings } from '../api/patients.js';
-import { addReading }                     from '../api/readings.js';
-import { getThresholds }                  from '../api/settings.js';
-import { toDisplay, categorizeByThresholds } from '../utils/units.js';
-import { rowsHtml }                       from '../components/table.js';
-import { drawLine }                       from '../components/chart.js';
+import { addReading }                       from '../api/readings.js';
+import { getThresholds }                    from '../api/settings.js';
+import { toDisplay, categorizeByThresholds }from '../utils/units.js';
+import { rowsHtml }                         from '../components/table.js';
+import { drawLine }                         from '../components/chart.js';
 
 export async function renderPatients(root){
   root.innerHTML = `
@@ -55,6 +55,7 @@ export async function renderPatients(root){
   // state
   let data = await listPatients();
   let sortKey = 'name', sortDir = 1;
+
   const drawer = root.querySelector('#drawer');
   const closeBtn = root.querySelector('#drawerClose');
   const q = root.querySelector('#q');
@@ -66,8 +67,8 @@ export async function renderPatients(root){
     body.innerHTML = rowsHtml(rows.map(p => [
       p.name,
       p.last,
-      `<span class="pill p-${p.cat}">${p.cat}</span>`,
-      `<a href="#" data-id="${p.id}" class="open">Open chart</a>`
+      { html: `<span class="pill p-${p.cat}">${p.cat}</span>` },
+      { html: `<a href="#" data-id="${p.id}" class="open">Open chart</a>` }
     ]));
     body.querySelectorAll('a.open').forEach(a=>{
       a.onclick = async (e)=>{
@@ -120,7 +121,7 @@ export async function renderPatients(root){
       recent.map(r => [
         new Date(r.ts).toLocaleString(),
         toDisplay(r.valueMgdl, unit),
-        `<span class="pill p-${r.cat}">${r.cat}</span>`
+        { html: `<span class="pill p-${r.cat}">${r.cat}</span>` }
       ])
     );
 
@@ -153,7 +154,7 @@ export async function renderPatients(root){
         recent2.map(r => [
           new Date(r.ts).toLocaleString(),
           toDisplay(r.valueMgdl, unit),
-          `<span class="pill p-${r.cat}">${r.cat}</span>`
+          { html: `<span class="pill p-${r.cat}">${r.cat}</span>` }
         ])
       );
 

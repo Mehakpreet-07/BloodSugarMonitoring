@@ -1,3 +1,4 @@
+// public/js/components/bell.js
 // Bell icon with a small dropdown for recent alerts.
 // Patients see only their own abnormal alerts.
 
@@ -19,36 +20,74 @@ export async function mountBell(container) {
   const menu = container.querySelector('#bellMenu');
 
   async function load() {
-    const all = await listAlerts();
-    const role = store.user?.role || 'guest';
-    const pid  = store.user?.id;
+    const all  = await listAlerts();
+    const user = store.user;
+    const role = user?.role || 'guest';
+    const pid  = user?.id;
 
-    // Patients see only their own and only Abnormal in the bell
+    // Patients see only their own Abnormal alerts in the bell
     const data = role === 'patient'
-      ? all.filter(a => a.patientId === pid).filter(a => a.cat === 'Abnormal')
+      ? all.filter(a => String(a.patientId) === String(pid)).filter(a => a.cat === 'Abnormal')
       : all;
 
     dot.style.display = data.length ? 'block' : 'none';
-    menu.innerHTML = data.length
-      ? data.slice(0, 6).map(a => `
-          <a href="#" role="menuitem" style="display:block">
-            <div style="font-weight:600">${a.name} • <span class="pill p-${a.cat}">${a.cat}</span></div>
-            <div class="muted" style="font-size:.85rem">${a.when} • ${a.note || ''}</div>
-          </a>`).join('')
-      : `<div class="muted" style="padding:.7rem .8rem">No new alerts</div>`;
+
+    if (!data.length) {
+      menu.innerHTML = `<div class="muted" style="padding:.7rem .8rem">No new alerts</div>`;
+      return;
+    }
+
+    menu.innerHTML = data.slice(0, 6).map(a => `
+      <a href="#/alerts" data-alert-item="1" role="menuitem" style="display:block">
+        <div style="font-weight:600">
+          ${a.name} • <span class="pill p-${a.cat}">${a.cat}</span>
+        </div>
+        <div class="muted" style="font-size:.85rem">
+          ${a.when} • ${a.note || ''}
+        </div>
+      </a>
+    `).join('');
   }
 
   await load();
 
+  // Open or close dropdown
   btn.onclick = () => {
     const open = menu.style.display === 'block';
     menu.style.display = open ? 'none' : 'block';
     btn.setAttribute('aria-expanded', String(!open));
   };
+
+  // Close on outside click
   document.addEventListener('click', e => {
     if (!menu.contains(e.target) && !btn.contains(e.target)) {
       menu.style.display = 'none';
       btn.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  // When a user clicks an alert inside the menu, route properly
+  menu.addEventListener('click', e => {
+    const item = e.target.closest('a[data-alert-item]');
+    if (!item) return;
+    e.preventDefault();
+
+    // Close the menu
+    menu.style.display = 'none';
+    btn.setAttribute('aria-expanded', 'false');
+
+    const user = store.user;
+    if (!user) {
+      // Safety fallback, should not happen
+      location.hash = '#/login';
+      return;
+    }
+
+    // Patients are not allowed on Alerts page, send them to their overview
+    if (user.role === 'patient') {
+      location.hash = '#/overview';
+    } else {
+      location.hash = '#/alerts';
     }
   });
 }

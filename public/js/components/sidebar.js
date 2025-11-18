@@ -1,30 +1,55 @@
+// public/js/components/sidebar.js
 import { store } from '../state/store.js';
 
-function itemsFor(role){
-  if (!role) return [];
-  if (role === 'patient') return [['#/overview','Overview'], ['#/settings','Settings'], ['#/profile','Profile']];
-  if (role === 'admin')   return [['#/dashboard','Dashboard'],['#/patients','Patients'],['#/alerts','Alerts'],['#/settings','Settings'],['#/profile','Profile']];
-  if (role === 'staff')   return [['#/dashboard','Dashboard'],['#/patients','Patients'],['#/alerts','Alerts'],['#/profile','Profile']];
-  return [['#/dashboard','Dashboard'],['#/patients','Patients'],['#/alerts','Alerts'],['#/settings','Settings'],['#/profile','Profile']];
-}
-
 export function mountSidebar(node, onNav){
+  function linksFor(role){
+    if (!role) {
+      return [
+        { hash:'#/login',    label:'Sign in' },
+        { hash:'#/register', label:'Register' }
+      ];
+    }
+    if (role === 'patient') {
+      return [
+        { hash:'#/overview', label:'Overview' },
+        { hash:'#/profile',  label:'Profile' }
+      ];
+    }
+    // doctor, admin, staff
+    return [
+      { hash:'#/dashboard', label:'Dashboard' },
+      { hash:'#/patients',  label:'Patients' },
+      { hash:'#/alerts',    label:'Alerts' },
+      { hash:'#/settings',  label:'Settings' },
+      { hash:'#/profile',   label:'Profile' }
+    ];
+  }
+
   function render(){
     const u = store.user;
-    const links = itemsFor(u?.role);
+    const items = linksFor(u?.role);
+    const current = location.hash || '#/login';
     node.innerHTML = `
       <div class="brand">Blood Sugar</div>
       <nav class="nav">
-        ${links.map(([href,label],i)=> `<a href="${href}" class="${i===0?'active':''}">${label}</a>`).join('')}
+        ${items.map(i => `
+          <a href="${i.hash}"
+             data-hash="${i.hash}"
+             class="${i.hash === current ? 'active' : ''}">
+            ${i.label}
+          </a>`).join('')}
       </nav>
     `;
-    node.querySelectorAll('.nav a').forEach(a=>{
-      a.addEventListener('click', ()=>{
-        node.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
-        a.classList.add('active'); onNav(a.getAttribute('href'));
-      });
+    node.querySelectorAll('a[data-hash]').forEach(a=>{
+      a.onclick = e=>{
+        e.preventDefault();
+        const h = a.getAttribute('data-hash');
+        if (onNav) onNav(h);
+      };
     });
   }
+
   render();
   document.addEventListener('state:change', render);
+  window.addEventListener('hashchange', render);
 }

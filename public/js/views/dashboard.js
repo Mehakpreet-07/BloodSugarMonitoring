@@ -5,7 +5,7 @@ import { drawLine } from '../components/chart.js';
 import { rowsHtml } from '../components/table.js';
 import { DAY, now, fmtDate } from '../utils/dates.js';
 import { getKpis } from '../api/kpis.js';
-import { listAlerts }   from '../api/alerts.js';
+import { listAlerts } from '../api/alerts.js';
 import { listPatients, getPatientReadings } from '../api/patients.js';
 import { getThresholds } from '../api/settings.js';
 import { toDisplay, categorizeByThresholds } from '../utils/units.js';
@@ -19,6 +19,7 @@ export async function renderDashboard(root){
     </section>
   `;
 
+  // Patient specific summary if someone bypasses the router
   if (role === 'patient') {
     root.innerHTML = `
       ${weatherCard}
@@ -51,7 +52,7 @@ export async function renderDashboard(root){
       const head = `<thead><tr><th>Date</th><th>${me.name}</th><th>Value</th><th>Category</th></tr></thead>`;
       const body = rowsHtml(last7.map(r=>{
         const cat = categorizeByThresholds(r.valueMgdl, thr);
-        return [fmtDate(r.ts), me.name, toDisplay(r.valueMgdl, thr.unit), `<span class="pill p-${cat}">${cat}</span>`];
+        return [fmtDate(r.ts), me.name, toDisplay(r.valueMgdl, thr.unit), { html: `<span class="pill p-${cat}">${cat}</span>` }];
       }));
       document.getElementById('dataTable').innerHTML = head + `<tbody>${body}</tbody>`;
     } catch {
@@ -66,7 +67,7 @@ export async function renderDashboard(root){
     return;
   }
 
-  // doctor, admin, staff
+  // Doctor, admin, staff
   root.innerHTML = `
     ${weatherCard}
 
@@ -109,12 +110,14 @@ export async function renderDashboard(root){
     </section>
   `;
 
+  // Weather
   getWeather().then(({city,desc,temp,hum,icon})=>{
     document.getElementById('weatherInfo').innerHTML =
       `<div class="row"><img src="https://openweathermap.org/img/wn/${icon}.png" alt="${desc}" width="48" height="48">
        <div><strong>${city}</strong><br>${desc} • ${temp}°C${hum?` • ${hum}% humidity`:''}</div></div>`;
   }).catch(()=> document.getElementById('weatherInfo').textContent='Unable to load weather.');
 
+  // KPIs
   getKpis().then(k => {
     document.getElementById('kpiPatients').textContent = k.patients;
     document.getElementById('kpiAlerts').textContent   = k.alerts;
@@ -123,6 +126,7 @@ export async function renderDashboard(root){
     document.getElementById('kpiPending').textContent  = `${k.pending} pending`;
   }).catch(()=>{});
 
+  // Demo trend + table
   const pts = [
     {name:'Rahul C.',  x:now()-6*DAY, y:175, cat:'Borderline'},
     {name:'Rahul C.',  x:now()-5*DAY, y:192, cat:'Abnormal'},
@@ -133,21 +137,27 @@ export async function renderDashboard(root){
     {name:'R. Kaur',   x:now()-0*DAY, y:126, cat:'Normal'},
   ];
   drawLine('trend', pts);
+
   const head = `<thead><tr><th>Date</th><th>Patient</th><th>mg/dL</th><th>Category</th></tr></thead>`;
-  const body = rowsHtml(pts.sort((a,b)=>a.x-b.x).map(r=>[
-    fmtDate(r.x), r.name, r.y, `<span class="pill p-${r.cat}">${r.cat}</span>`
+  const body = rowsHtml(pts.slice().sort((a,b)=>a.x-b.x).map(r=>[
+    fmtDate(r.x), r.name, r.y, { html: `<span class="pill p-${r.cat}">${r.cat}</span>` }
   ]));
   document.getElementById('dataTable').innerHTML = head + `<tbody>${body}</tbody>`;
 
+  // Recent alerts
   listAlerts().then(alerts=>{
     document.getElementById('alertsBody').innerHTML = alerts.map(a => `
       <tr><td>${a.when}</td><td>${a.name}</td><td><span class="pill p-${a.cat}">${a.cat}</span></td><td>${a.note}</td></tr>
     `).join('');
   }).catch(()=>{});
 
+  // Patients snapshot
   listPatients().then(ps=>{
     document.getElementById('patientsBody').innerHTML = ps.map(p => `
       <tr><td>${p.name}</td><td>${p.last}</td><td><span class="pill p-${p.cat}">${p.cat}</span></td><td><a href="#/patients">Open chart</a></td></tr>
     `).join('');
   }).catch(()=>{});
+
+  // Filters action, currently only redraws the demo series
+  document.getElementById('applyFilters').onclick = ()=> drawLine('trend', pts);
 }

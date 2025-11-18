@@ -11,14 +11,14 @@ import { makeAiAdvice, adviceHtml } from '../utils/ai.js';
 export async function renderOverview(root){
   const me = store.user || {};
 
-  // Staff and guests see a simple notice. Staff use Dashboard and Patients.
+  // Non patients see a short notice
   if (me.role !== 'patient'){
     root.innerHTML = `
       <section class="panel">
         <h2>Overview</h2>
         <p class="muted">
           This page is for patients to review their own readings with AI tips.
-          Staff can use Dashboard and Patients.
+          Please use Dashboard and Patients for clinical workflows.
         </p>
       </section>`;
     return;
@@ -30,7 +30,7 @@ export async function renderOverview(root){
     getThresholds(),
     getPatientReadings(patientId)
   ]);
-  const list = all.sort((a,b)=> a.ts - b.ts);
+  const list = all.slice().sort((a,b)=> a.ts - b.ts);
 
   root.innerHTML = `
     <section class="panel">
@@ -69,7 +69,7 @@ export async function renderOverview(root){
     list.slice(-14).reverse().map(r => [
       fmtDate(r.ts),
       toDisplay(r.valueMgdl, thr.unit),
-      `<span class="pill p-${withCat(r).cat}">${withCat(r).cat}</span>`
+      { html: `<span class="pill p-${withCat(r).cat}">${withCat(r).cat}</span>` }
     ])
   );
   document.getElementById('myTable').innerHTML = head + `<tbody>${body}</tbody>`;

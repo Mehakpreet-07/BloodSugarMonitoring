@@ -1,3 +1,4 @@
+// public/js/router.js
 import { renderDashboard }  from './views/dashboard.js';
 import { renderPatients }   from './views/patients.js';
 import { renderAlerts }     from './views/alerts.js';
@@ -19,33 +20,49 @@ const routes = {
   '#/overview' : renderOverview
 };
 
-function defaultHashFor(user){
-  if (!user) return '#/login';
-  return user.role === 'patient' ? '#/overview' : '#/dashboard';
-}
-
 export function router(){
   const page = document.getElementById('page');
   let hash = location.hash || '#/login';
   const user = store.user;
 
-  // auth guards
+  // Public routes that do not require auth
   const publicRoutes = new Set(['#/login', '#/register']);
-  if (!user && !publicRoutes.has(hash)){
+
+  // Not logged in → force to login
+  if (!user && !publicRoutes.has(hash)) {
     hash = '#/login';
     if (location.hash !== hash) location.hash = hash;
   }
 
-  // role guards
-  if (user?.role === 'patient' && (hash === '#/patients' || hash === '#/alerts' || hash === '#/dashboard')){
+  // Patients cannot access staff views
+  if (user?.role === 'patient' &&
+      (hash === '#/patients' ||
+       hash === '#/alerts'   ||
+       hash === '#/dashboard'||
+       hash === '#/settings')) {
     hash = '#/overview';
     if (location.hash !== hash) location.hash = hash;
   }
 
-  // render
+  // Render page
   page.innerHTML = '';
   (routes[hash] || renderLogin)(page);
+
+  // Simple breadcrumb label in header
+  const map = {
+    '#/login'    : 'Sign in',
+    '#/register' : 'Register',
+    '#/dashboard': 'Dashboard',
+    '#/patients' : 'Patients',
+    '#/alerts'   : 'Alerts',
+    '#/settings' : 'Settings',
+    '#/profile'  : 'Profile',
+    '#/overview' : 'Overview'
+  };
+  const crumbs = document.querySelector('#head .crumbs');
+  if (crumbs) crumbs.textContent = map[hash] || '';
 }
 
-export function goto(hash){ location.hash = hash; }
-
+export function goto(hash){
+  location.hash = hash;
+}
