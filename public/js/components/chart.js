@@ -1,12 +1,16 @@
 // public/js/components/chart.js
+// Simple line chart drawing utility
+// Exports a single function: drawLine(canvasId, points)
+// points: array of {x:..., y:..., cat:...} objects
+// cat is optional, if present and is 'Abnormal' or 'Borderline', point is colored accordingly
 export function drawLine(canvasId, points){
   const cvs = document.getElementById(canvasId);
   const ctx = cvs.getContext('2d');
-
+// set canvas size to match displayed size
   const w = cvs.clientWidth, h = cvs.clientHeight;
   cvs.width = w; cvs.height = h;
   ctx.clearRect(0,0,w,h);
-
+// no points case: draw only axes
   if (!points || points.length === 0) {
     // axes only
     const pad = 28;
@@ -21,7 +25,7 @@ export function drawLine(canvasId, points){
   let miny = Math.min(...ys), maxy = Math.max(...ys);
   if (maxx === minx) { maxx = minx + 1; }         // 1 point case
   if (maxy === miny) { maxy = miny + 1; }
-
+// coordinate transforms
   const pad = 28;
   const X = t => pad + (w - 2*pad) * ((t - minx) / (maxx - minx));
   const Y = v => h - pad - (h - 2*pad) * ((v - miny) / (maxy - miny));
@@ -47,3 +51,4 @@ export function drawLine(canvasId, points){
     ctx.fill();
   });
 }
+

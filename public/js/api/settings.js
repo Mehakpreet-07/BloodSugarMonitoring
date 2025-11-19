@@ -7,7 +7,9 @@ const base = USE_MOCKS ? 'mock' : '/api';
 
 const LS_KEY = 'bs_thresholds_v1';
 const DEFAULTS = { normalMax: 120, borderlineMax: 180, unit: 'mgdl' };
-
+// what is fetched/returned: { normalMax:number, borderlineMax:number, unit:'mgdl'|'mmol' }
+// meaning: normal ≤ normalMax < borderlineMax ≤ high
+//Get the blood sugar threshold settings. First check local cache, then server, then defaults.
 // Safe JSON helper
 async function safeJson(res, context = '') {
   if (!res.ok) {
@@ -19,7 +21,7 @@ async function safeJson(res, context = '') {
     throw new Error(`[settings] ${context} invalid JSON from ${res.url}`);
   }
 }
-
+//getThresholds fetches blood sugar threshold settings from server or mock file(if USE_MOCKS is true: means no database connection)
 export async function getThresholds() {
   // 1) cached (mock persists via localStorage)
   try {

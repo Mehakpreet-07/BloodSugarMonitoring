@@ -1,3 +1,7 @@
+//Converts mg/dL ↔ mmol/L.
+//Creates display string for UI.
+//Categorizes blood sugar values according to thresholds (Normal / Borderline / Abnormal).
+// Utility functions for blood sugar unit conversions and categorizations
 export const mgdlToMmol = v => +(v * 0.0555).toFixed(1);
 export const mmolToMgdl = v => Math.round(v / 0.0555);
 

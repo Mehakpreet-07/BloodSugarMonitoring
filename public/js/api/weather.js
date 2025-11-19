@@ -1,4 +1,5 @@
 // public/js/api/weather.js
+//functionality to get weather data from OpenWeather API for blood sugar monitoring application
 import { WEATHER_PROVIDER, OPENWEATHER_KEY, DEFAULT_LOCATION } from '../config.js';
 
 // Return: { city, desc, temp, hum, icon }
@@ -6,13 +7,13 @@ export async function getWeather(coords = DEFAULT_LOCATION) {
   if (WEATHER_PROVIDER !== 'openweather') {
     throw new Error('Set WEATHER_PROVIDER to "openweather" in config.js');
   }
-
+// coords: { lat, lon, city? }
   const url = `https://api.openweathermap.org/data/2.5/weather?lat=${coords.lat}&lon=${coords.lon}&units=metric&appid=${OPENWEATHER_KEY}`;
 
   const res = await fetch(url);
   if (!res.ok) throw new Error('Weather request failed');
   const d = await res.json();
-
+//return weather data in standardized format
  return {
     city: coords.city ?? d.name ?? 'Location',
     desc: (d.weather?.[0]?.description ?? 'Weather').replace(/^./, c => c.toUpperCase()),

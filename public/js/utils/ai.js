@@ -3,14 +3,15 @@
 
 import { categorizeByThresholds } from './units.js';
 
-const LOW_ALERT = 70;   // from your notes
+const LOW_ALERT = 70;   //for our advice logic, low blood sugar threshold in mg/dL
+// Generate AI advice based on recent readings and thresholds
 
 export function makeAiAdvice(readings = [], thresholds) {
   // Keep last 14 for simple frequency checks
   const last = readings
     .slice(-14)
     .map(r => ({ ...r, cat: categorizeByThresholds(r.valueMgdl, thresholds) }));
-
+// Summary counts of the last readings
   const total = last.length;
   const counts = last.reduce((acc, r) => {
     acc[r.cat] = (acc[r.cat] || 0) + 1;
@@ -19,7 +20,7 @@ export function makeAiAdvice(readings = [], thresholds) {
 
   const advice = [];
 
-  // High frequency of abnormal
+  // frequency of the high readings
   if ((counts.Abnormal || 0) >= 3) {
     advice.push({
       level: 'warning',
@@ -27,7 +28,7 @@ export function makeAiAdvice(readings = [], thresholds) {
     });
   }
 
-  // Borderline creeping up
+  // boderline: frequent but not too many abnormals. this code means 4-6 borderlines and 0-1 abnormals
   if ((counts.Borderline || 0) >= 4 && (counts.Abnormal || 0) <= 1) {
     advice.push({
       level: 'tip',
@@ -35,7 +36,7 @@ export function makeAiAdvice(readings = [], thresholds) {
     });
   }
 
-  // Any low events
+  // when there is any low reading
   if (last.some(r => r.valueMgdl <= LOW_ALERT)) {
     advice.push({
       level: 'caution',
@@ -43,7 +44,7 @@ export function makeAiAdvice(readings = [], thresholds) {
     });
   }
 
-  // Stable normal streak
+  // positive feedback for good control
   if (total >= 7 && (counts.Abnormal || 0) === 0 && (counts.Borderline || 0) <= 1) {
     advice.push({
       level: 'positive',
@@ -61,7 +62,7 @@ export function makeAiAdvice(readings = [], thresholds) {
 
   return advice;
 }
-
+// Generate HTML for displaying AI advice items
 export function adviceHtml(items = []) {
   const badge = lvl =>
     lvl === 'warning' ? 'b-bad'
