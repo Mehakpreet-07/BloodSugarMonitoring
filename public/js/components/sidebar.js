@@ -3,23 +3,50 @@ import { store } from '../state/store.js';
 
 export function mountSidebar(node, onNav){
   function linksFor(role){
+    // Not signed in
     if (!role) {
       return [
         { hash:'#/login',    label:'Sign in' },
         { hash:'#/register', label:'Register' }
       ];
     }
+
+    // Patient
     if (role === 'patient') {
       return [
         { hash:'#/overview', label:'Overview' },
+        { hash:'#/settings', label:'Settings' },
         { hash:'#/profile',  label:'Profile' }
       ];
     }
-    // doctor, admin, staff
+
+    // Clinic staff
+    if (role === 'staff') {
+      return [
+        { hash:'#/settings', label:'Settings' },
+        { hash:'#/emails',   label:'Email templates' },
+        { hash:'#/profile',  label:'Profile' }
+      ];
+    }
+
+    // Admin
+    if (role === 'admin') {
+      return [
+        { hash:'#/dashboard', label:'Dashboard' },
+        { hash:'#/patients',  label:'Patients' },
+        // Alerts page exists but is reachable from bell / dashboard,
+        // so you can leave it out of the sidebar if you want.
+        { hash:'#/settings',  label:'Settings' },
+        { hash:'#/emails',    label:'Email templates' },
+        { hash:'#/profile',   label:'Profile' }
+      ];
+    }
+
+    // Doctor and any other clinical role
     return [
       { hash:'#/dashboard', label:'Dashboard' },
       { hash:'#/patients',  label:'Patients' },
-      { hash:'#/alerts',    label:'Alerts' },
+      // Alerts omitted from sidebar; accessed via bell + dashboard.
       { hash:'#/settings',  label:'Settings' },
       { hash:'#/profile',   label:'Profile' }
     ];
@@ -29,6 +56,7 @@ export function mountSidebar(node, onNav){
     const u = store.user;
     const items = linksFor(u?.role);
     const current = location.hash || '#/login';
+
     node.innerHTML = `
       <div class="brand">Blood Sugar</div>
       <nav class="nav">
@@ -40,8 +68,9 @@ export function mountSidebar(node, onNav){
           </a>`).join('')}
       </nav>
     `;
-    node.querySelectorAll('a[data-hash]').forEach(a=>{
-      a.onclick = e=>{
+
+    node.querySelectorAll('a[data-hash]').forEach(a => {
+      a.onclick = e => {
         e.preventDefault();
         const h = a.getAttribute('data-hash');
         if (onNav) onNav(h);

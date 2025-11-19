@@ -1,4 +1,5 @@
 import { store } from '../state/store.js';
+import { resendActivation } from '../api/auth.js';
 
 export function renderLogin(root){
   root.innerHTML = `
@@ -11,6 +12,9 @@ export function renderLogin(root){
           <button class="primary" type="submit">Sign in</button>
         </div>
         <p id="err" class="muted" role="alert" aria-live="polite"></p>
+        <button type="button" id="resend" class="primary" style="margin-top:.4rem; display:none">
+          Resend activation email
+        </button>
       </form>
       <p class="muted" style="margin-top:.6rem">
         New patient? <a href="#/register">Create an account</a>
@@ -27,14 +31,39 @@ export function renderLogin(root){
 
   const form = root.querySelector('#loginForm');
   const err  = root.querySelector('#err');
-  form.onsubmit = async (e)=>{
+  const resendBtn = root.querySelector('#resend');
+
+  form.onsubmit = async e=>{
     e.preventDefault();
     err.textContent = '';
-    const ok = await store.login(form.email.value.trim(), form.pwd.value);
-    if (!ok.ok){ err.textContent = ok.error || 'Sign in failed'; return; }
+    resendBtn.style.display = 'none';
 
-    // route by role
+    const ok = await store.login(form.email.value.trim(), form.pwd.value);
+    if (!ok.ok){
+      const message = ok.error || 'Sign in failed';
+      err.textContent = message;
+
+      if (message.toLowerCase().includes('activate')) {
+        resendBtn.style.display = 'inline-block';
+      }
+      return;
+    }
+
     const role = store.user?.role;
     location.hash = role === 'patient' ? '#/overview' : '#/dashboard';
+  };
+
+  resendBtn.onclick = async ()=>{
+    const email = form.email.value.trim();
+    if (!email) {
+      err.textContent = 'Enter your email above first.';
+      return;
+    }
+    const res = await resendActivation(email);
+    if (!res.ok){
+      err.textContent = res.error || 'Could not resend activation email.';
+    } else {
+      err.textContent = `Activation email sent (${res.count}/3).`;
+    }
   };
 }

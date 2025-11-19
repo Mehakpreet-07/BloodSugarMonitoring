@@ -7,6 +7,7 @@ import { renderProfile }    from './views/profile.js';
 import { renderOverview }   from './views/overview.js';
 import { renderLogin }      from './views/login.js';
 import { renderRegister }   from './views/register.js';
+import { renderEmailTemplates } from './views/emailTemplates.js';
 import { store }            from './state/store.js';
 
 const routes = {
@@ -17,8 +18,14 @@ const routes = {
   '#/alerts'   : renderAlerts,
   '#/settings' : renderSettings,
   '#/profile'  : renderProfile,
-  '#/overview' : renderOverview
+  '#/overview' : renderOverview,
+  '#/emails'   : renderEmailTemplates
 };
+
+function defaultHashFor(user){
+  if (!user) return '#/login';
+  return user.role === 'patient' ? '#/overview' : '#/dashboard';
+}
 
 export function router(){
   const page = document.getElementById('page');
@@ -34,13 +41,23 @@ export function router(){
     if (location.hash !== hash) location.hash = hash;
   }
 
-  // Patients cannot access staff views
-  if (user?.role === 'patient' &&
-      (hash === '#/patients' ||
-       hash === '#/alerts'   ||
-       hash === '#/dashboard'||
-       hash === '#/settings')) {
+  // Patients cannot access staff/admin views
+  if (
+    user?.role === 'patient' &&
+    (hash === '#/patients' ||
+     hash === '#/alerts'   ||
+     hash === '#/dashboard'||
+     hash === '#/settings' ||
+     hash === '#/emails')
+  ){
     hash = '#/overview';
+    if (location.hash !== hash) location.hash = hash;
+  }
+
+   // admin + clinic staff only routes
+  const restricted = new Set(['#/emails']);
+  if (user && restricted.has(hash) && (user.role !== 'admin' && user.role !== 'staff')) {
+    hash = defaultHashFor(user);
     if (location.hash !== hash) location.hash = hash;
   }
 
@@ -57,7 +74,8 @@ export function router(){
     '#/alerts'   : 'Alerts',
     '#/settings' : 'Settings',
     '#/profile'  : 'Profile',
-    '#/overview' : 'Overview'
+    '#/overview' : 'Overview',
+    '#/emails'   : 'Email templates'
   };
   const crumbs = document.querySelector('#head .crumbs');
   if (crumbs) crumbs.textContent = map[hash] || '';
