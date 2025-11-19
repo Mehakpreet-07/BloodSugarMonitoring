@@ -1,7 +1,9 @@
+// this page is for admin and patient settings
 import { getThresholds, putThresholds } from '../api/settings.js';
-
+// to get and update the threshold settings
 export async function renderSettings(root){
   const t = await getThresholds();
+  // this is the html form for setting the thresholds and units
   root.innerHTML = `
     <section class="panel">
       <h2>Settings</h2>
@@ -31,10 +33,11 @@ export async function renderSettings(root){
       </p>
     </section>
   `;
-
+// to easily get elements by their id within the root: means the settings page
   const el = id => root.querySelector('#'+id);
   const form = el('thrForm'), err = el('err');
 
+// this is the event when the form is submitted
   form.onsubmit = async (e)=>{
     e.preventDefault();
     err.textContent = '';
@@ -48,7 +51,7 @@ export async function renderSettings(root){
     if (normalMax >= borderlineMax){
       err.textContent = 'Borderline max must be greater than Normal max.'; return;
     }
-
+// calling the api to update the thresholds
     await putThresholds({ normalMax, borderlineMax, unit });
     err.textContent = 'Saved ✓';
   };

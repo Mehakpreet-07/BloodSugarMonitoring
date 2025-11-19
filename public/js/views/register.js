@@ -1,5 +1,5 @@
 import { registerPatient } from '../api/auth.js';
-
+// this function will render the register page
 export function renderRegister(root){
   root.innerHTML = `
     <section class="panel" style="max-width:560px;margin:3rem auto">
@@ -17,7 +17,7 @@ export function renderRegister(root){
       <p class="muted" style="margin-top:.6rem">Already have an account? <a href="#/login">Sign in</a></p>
     </section>
   `;
-
+// helps to get elements by their id within the root: means the register page
   const f = root.querySelector('#regForm');
   const err = root.querySelector('#err');
 
@@ -25,12 +25,14 @@ export function renderRegister(root){
     e.preventDefault();
     err.textContent = '';
     if (f.pwd.value !== f.pwd2.value){ err.textContent = 'Passwords do not match'; return; }
-
+// calling the api to register the patient
     const res = await registerPatient({
       name: f.name.value.trim(),
       email: f.email.value.trim(),
       password: f.pwd.value
     });
+
+  // handling errors and success message for registration
     if (!res.ok){ err.textContent = res.error || 'Registration failed'; return; }
     err.textContent = 'Account created. Please sign in.';
     setTimeout(()=> location.hash = '#/login', 600);

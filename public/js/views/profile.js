@@ -1,10 +1,10 @@
 // public/js/views/profile.js
 import { store } from '../state/store.js';
 import { rowsHtml } from '../components/table.js';
-
+// this function will render the profile page
 export function renderProfile(root){
   const role = store.user?.role || 'guest';
-
+// rendering different profile views based on user role like doctor , patient , staff,or admin
   if (role === 'doctor') {
     root.innerHTML = `
       <section class="grid two">
@@ -39,7 +39,7 @@ export function renderProfile(root){
     `;
     return;
   }
-
+// rendering different profile views based on user role like doctor , patient , staff,or admin
   if (role === 'admin') {
     root.innerHTML = `
       <section class="grid two">
@@ -95,7 +95,7 @@ export function renderProfile(root){
     `;
     return;
   }
-
+// this is for guest users who are not signed in
   root.innerHTML = `
     <section class="panel">
       <h2>Profile</h2>

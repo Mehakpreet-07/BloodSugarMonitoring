@@ -9,7 +9,7 @@ import { listAlerts } from '../api/alerts.js';
 import { listPatients, getPatientReadings } from '../api/patients.js';
 import { getThresholds } from '../api/settings.js';
 import { toDisplay, categorizeByThresholds } from '../utils/units.js';
-
+// this function will render the dashboard page for doctor, admin, staff or patient
 export async function renderDashboard(root){
   const role = store.user?.role || 'guest';
   const weatherCard = `
@@ -18,8 +18,7 @@ export async function renderDashboard(root){
       <div id="weatherInfo" class="muted">Loading current weather…</div>
     </section>
   `;
-
-  // Patient specific summary if someone bypasses the router
+// if the user is a patient , show their own readings trend and weather info
   if (role === 'patient') {
     root.innerHTML = `
       ${weatherCard}
@@ -32,7 +31,7 @@ export async function renderDashboard(root){
         </details>
       </section>
     `;
-
+// to easily get elements by their id within the root: means the patient dashboard page
     try {
       const myId = store.user?.patientId;
       const [thr, myReadings, ptsList] = await Promise.all([
@@ -41,14 +40,14 @@ export async function renderDashboard(root){
         listPatients()
       ]);
       const me = ptsList.find(p => String(p.id) === String(myId)) || { name:'Me' };
-
+// it helps to draw the trend chart and data table for the patient
       const last7 = myReadings.slice(-7);
       const series = last7.map(r => {
         const cat = categorizeByThresholds(r.valueMgdl, thr);
         return { x:r.ts, y:r.valueMgdl, cat };
       });
       drawLine('trend', series.length ? series : [{ x: Date.now(), y: 0, cat: 'Normal' }]);
-
+// preparing the data table for the patient
       const head = `<thead><tr><th>Date</th><th>${me.name}</th><th>Value</th><th>Category</th></tr></thead>`;
       const body = rowsHtml(last7.map(r=>{
         const cat = categorizeByThresholds(r.valueMgdl, thr);
@@ -58,7 +57,7 @@ export async function renderDashboard(root){
     } catch {
       document.getElementById('dataTable').innerHTML = '<tbody><tr><td>Unable to load your data.</td></tr></tbody>';
     }
-
+// this is for the weather info for patient dashboard
     getWeather().then(({city,desc,temp,hum,icon})=>{
       document.getElementById('weatherInfo').innerHTML =
         `<div class="row"><img src="https://openweathermap.org/img/wn/${icon}.png" alt="${desc}" width="48" height="48">
@@ -67,7 +66,7 @@ export async function renderDashboard(root){
     return;
   }
 
-  // Doctor, admin, staff
+// for doctor , admin or staff , show the dashboard with KPIs , alerts , patients snapshot and weather
   root.innerHTML = `
     ${weatherCard}
 
@@ -110,14 +109,13 @@ export async function renderDashboard(root){
     </section>
   `;
 
-  // Weather
+// this is for the weather info for doctor , admin or staff dashboard
   getWeather().then(({city,desc,temp,hum,icon})=>{
     document.getElementById('weatherInfo').innerHTML =
       `<div class="row"><img src="https://openweathermap.org/img/wn/${icon}.png" alt="${desc}" width="48" height="48">
        <div><strong>${city}</strong><br>${desc} • ${temp}°C${hum?` • ${hum}% humidity`:''}</div></div>`;
   }).catch(()=> document.getElementById('weatherInfo').textContent='Unable to load weather.');
-
-  // KPIs
+// fetching and displaying the KPIs: means total patients , open alerts , critical alerts , todays consults , pending consults
   getKpis().then(k => {
     document.getElementById('kpiPatients').textContent = k.patients;
     document.getElementById('kpiAlerts').textContent   = k.alerts;
@@ -126,7 +124,7 @@ export async function renderDashboard(root){
     document.getElementById('kpiPending').textContent  = `${k.pending} pending`;
   }).catch(()=>{});
 
-  // Demo trend + table
+// preparing demo data for trend chart and data table
   const pts = [
     {name:'Rahul C.',  x:now()-6*DAY, y:175, cat:'Borderline'},
     {name:'Rahul C.',  x:now()-5*DAY, y:192, cat:'Abnormal'},
@@ -137,27 +135,27 @@ export async function renderDashboard(root){
     {name:'R. Kaur',   x:now()-0*DAY, y:126, cat:'Normal'},
   ];
   drawLine('trend', pts);
-
+// preparing the data table for trend chart
   const head = `<thead><tr><th>Date</th><th>Patient</th><th>mg/dL</th><th>Category</th></tr></thead>`;
   const body = rowsHtml(pts.slice().sort((a,b)=>a.x-b.x).map(r=>[
     fmtDate(r.x), r.name, r.y, { html: `<span class="pill p-${r.cat}">${r.cat}</span>` }
   ]));
   document.getElementById('dataTable').innerHTML = head + `<tbody>${body}</tbody>`;
 
-  // Recent alerts
+// this is for the recent alerts table
   listAlerts().then(alerts=>{
     document.getElementById('alertsBody').innerHTML = alerts.map(a => `
       <tr><td>${a.when}</td><td>${a.name}</td><td><span class="pill p-${a.cat}">${a.cat}</span></td><td>${a.note}</td></tr>
     `).join('');
   }).catch(()=>{});
 
-  // Patients snapshot
+// this is for the patients snapshot table
   listPatients().then(ps=>{
     document.getElementById('patientsBody').innerHTML = ps.map(p => `
       <tr><td>${p.name}</td><td>${p.last}</td><td><span class="pill p-${p.cat}">${p.cat}</span></td><td><a href="#/patients">Open chart</a></td></tr>
     `).join('');
   }).catch(()=>{});
 
-  // Filters action, currently only redraws the demo series
+// this is for the filter button to filter the trend chart and data table
   document.getElementById('applyFilters').onclick = ()=> drawLine('trend', pts);
 }

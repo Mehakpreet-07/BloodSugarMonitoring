@@ -1,7 +1,7 @@
 // public/js/views/emailTemplates.js
 import { store } from '../state/store.js';
 import { getTemplates, saveTemplates } from '../api/templates.js';
-
+// this function will render the email templates page for admin users to manage email templates
 export async function renderEmailTemplates(root){
   const user = store.user;
   if (!user || user.role !== 'admin') {
@@ -13,9 +13,9 @@ export async function renderEmailTemplates(root){
     `;
     return;
   }
-
+// fetching existing email templates from the server: means api call to get templates
   const templates = await getTemplates();
-
+// setting up the email templates page structure
   root.innerHTML = `
     <section class="panel">
       <h2>Email templates</h2>
@@ -45,7 +45,7 @@ export async function renderEmailTemplates(root){
       </form>
     </section>
   `;
-
+// to easily get elements by their id within the root: means the email templates page
   const form = root.querySelector('#tplForm');
   const msg  = root.querySelector('#msg');
 

@@ -5,7 +5,7 @@ import { getThresholds }                    from '../api/settings.js';
 import { toDisplay, categorizeByThresholds }from '../utils/units.js';
 import { rowsHtml }                         from '../components/table.js';
 import { drawLine }                         from '../components/chart.js';
-
+// this function will render the patients page for doctor or staff
 export async function renderPatients(root){
   root.innerHTML = `
     <section class="panel">
@@ -52,17 +52,18 @@ export async function renderPatients(root){
     </aside>
   `;
 
-  // state
+  // this helps to get and render the patients list
   let data = await listPatients();
   let sortKey = 'name', sortDir = 1;
-
+// to get various elements by their id within the root: means the patients page 
+// upper line means the patients page
   const drawer = root.querySelector('#drawer');
   const closeBtn = root.querySelector('#drawerClose');
   const q = root.querySelector('#q');
   const go = root.querySelector('#go');
   const body = root.querySelector('#body');
   const table = root.querySelector('#ptbl');
-
+// to render the rows of patients in the table
   function renderRows(rows){
     body.innerHTML = rowsHtml(rows.map(p => [
       p.name,
@@ -79,14 +80,14 @@ export async function renderPatients(root){
       };
     });
   }
-
+// this will helps to apply search and sorting on the patients list
   function apply(){
     const term = q.value.trim().toLowerCase();
     let rows = data.filter(p => !term || p.name.toLowerCase().includes(term));
     rows.sort((a,b)=> (a[sortKey] > b[sortKey] ? 1 : -1) * sortDir);
     renderRows(rows);
   }
-
+// helps in searching and sorting the patients list
   go.onclick = async ()=>{ data = await listPatients(q.value); apply(); };
   table.querySelectorAll('th[data-k]').forEach(th=>{
     th.onclick = ()=>{

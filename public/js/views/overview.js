@@ -7,11 +7,11 @@ import { rowsHtml } from '../components/table.js';
 import { fmtDate } from '../utils/dates.js';
 import { toDisplay, categorizeByThresholds } from '../utils/units.js';
 import { makeAiAdvice, adviceHtml } from '../utils/ai.js';
-
+// this function will render the overview page for patients to review their own readings with AI tips
 export async function renderOverview(root){
   const me = store.user || {};
 
-  // Non patients see a short notice
+// if the user is not a patient , show a message
   if (me.role !== 'patient'){
     root.innerHTML = `
       <section class="panel">
@@ -24,14 +24,14 @@ export async function renderOverview(root){
     return;
   }
 
-  // Patient view
+// for patient users , show their recent readings with AI tips
   const patientId = me.patientId;
   const [thr, all] = await Promise.all([
     getThresholds(),
     getPatientReadings(patientId)
   ]);
   const list = all.slice().sort((a,b)=> a.ts - b.ts);
-
+// set up the overview page structure
   root.innerHTML = `
     <section class="panel">
       <h2>My Recent Readings</h2>
@@ -58,12 +58,12 @@ export async function renderOverview(root){
       </div>
     </section>
   `;
-
+// if there are no readings , stop here
   if (!list.length) return;
 
   const withCat = r => ({ ...r, cat: categorizeByThresholds(r.valueMgdl, thr) });
 
-  // Table last 14
+// this is for the data table of last 14 readings
   const head = `<thead><tr><th>Date</th><th>Reading</th><th>Category</th></tr></thead>`;
   const body = rowsHtml(
     list.slice(-14).reverse().map(r => [
@@ -74,11 +74,11 @@ export async function renderOverview(root){
   );
   document.getElementById('myTable').innerHTML = head + `<tbody>${body}</tbody>`;
 
-  // Chart last 14
+// this is for the trend chart of last 14 readings
   const pts = list.slice(-14).map(withCat).map(r => ({ x:r.ts, y:r.valueMgdl, cat:r.cat }));
   drawLine('myTrend', pts.length ? pts : [{ x: Date.now(), y: 0, cat: 'Normal' }]);
 
-  // AI tips
+// patient will get the AI advice based on their readings
   const tips = makeAiAdvice(list, thr);
   document.getElementById('aiBox').innerHTML = adviceHtml(tips);
 }
