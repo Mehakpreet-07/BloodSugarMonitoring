@@ -1,0 +1,411 @@
+[
+  {
+    "patientId": 1,
+    "valueMgPerdL": 95,
+    "unitEntered": "mg/dL",
+    "category": "Normal",
+    "notes": "Reading at 8:00",
+    "recordedAt": "2025-11-19T14:42:29.498Z",
+    "id": 1,
+    "createdAt": "2025-11-19T06:42:29.499Z",
+    "updatedAt": "2025-11-19T06:42:29.499Z",
+    "foodActivityLogs": [
+      {
+        "readingId": 1,
+        "description": "Oatmeal with berries",
+        "loggedAt": "2025-11-19T14:42:29.498Z",
+        "id": 1,
+        "createdAt": "2025-11-19T06:42:29.501Z",
+        "updatedAt": "2025-11-19T06:42:29.501Z"
+      }
+    ]
+  },
+  {
+    "patientId": 1,
+    "valueMgPerdL": 185,
+    "unitEntered": "mg/dL",
+    "category": "AbnormalHigh",
+    "notes": "Reading at 12:00",
+    "recordedAt": "2025-11-19T18:42:29.498Z",
+    "id": 2,
+    "createdAt": "2025-11-19T06:42:29.503Z",
+    "updatedAt": "2025-11-19T06:42:29.503Z",
+    "foodActivityLogs": [
+      {
+        "readingId": 2,
+        "description": "Pizza and soda",
+        "loggedAt": "2025-11-19T18:42:29.498Z",
+        "id": 2,
+        "createdAt": "2025-11-19T06:42:29.505Z",
+        "updatedAt": "2025-11-19T06:42:29.505Z"
+      }
+    ]
+  },
+  {
+    "patientId": 1,
+    "valueMgPerdL": 88,
+    "unitEntered": "mg/dL",
+    "category": "Normal",
+    "notes": "Reading at 7:00",
+    "recordedAt": "2025-11-18T13:42:29.498Z",
+    "id": 4,
+    "createdAt": "2025-11-19T06:42:29.514Z",
+    "updatedAt": "2025-11-19T06:42:29.514Z",
+    "foodActivityLogs": [
+      {
+        "readingId": 4,
+        "description": "Skipped breakfast",
+        "loggedAt": "2025-11-18T13:42:29.498Z",
+        "id": 4,
+        "createdAt": "2025-11-19T06:42:29.517Z",
+        "updatedAt": "2025-11-19T06:42:29.517Z"
+      }
+    ]
+  },
+  {
+    "patientId": 1,
+    "valueMgPerdL": 195,
+    "unitEntered": "mg/dL",
+    "category": "AbnormalHigh",
+    "notes": "Reading at 13:00",
+    "recordedAt": "2025-11-18T19:42:29.498Z",
+    "id": 5,
+    "createdAt": "2025-11-19T06:42:29.519Z",
+    "updatedAt": "2025-11-19T06:42:29.519Z",
+    "foodActivityLogs": [
+      {
+        "readingId": 5,
+        "description": "Fast food burger",
+        "loggedAt": "2025-11-18T19:42:29.498Z",
+        "id": 5,
+        "createdAt": "2025-11-19T06:42:29.521Z",
+        "updatedAt": "2025-11-19T06:42:29.521Z"
+      }
+    ]
+  },
+  {
+    "patientId": 1,
+    "valueMgPerdL": 135,
+    "unitEntered": "mg/dL",
+    "category": "Normal",
+    "notes": "Reading at 19:00",
+    "recordedAt": "2025-11-19T01:42:29.498Z",
+    "id": 6,
+    "createdAt": "2025-11-19T06:42:29.523Z",
+    "updatedAt": "2025-11-19T06:42:29.523Z",
+    "foodActivityLogs": [
+      {
+        "readingId": 6,
+        "description": "Grilled chicken salad",
+        "loggedAt": "2025-11-19T01:42:29.498Z",
+        "id": 6,
+        "createdAt": "2025-11-19T06:42:29.526Z",
+        "updatedAt": "2025-11-19T06:42:29.526Z"
+      }
+    ]
+  },
+  {
+    "patientId": 1,
+    "valueMgPerdL": 92,
+    "unitEntered": "mg/dL",
+    "category": "Normal",
+    "notes": "Reading at 8:00",
+    "recordedAt": "2025-11-17T14:42:29.498Z",
+    "id": 7,
+    "createdAt": "2025-11-19T06:42:29.528Z",
+    "updatedAt": "2025-11-19T06:42:29.528Z",
+    "foodActivityLogs": [
+      {
+        "readingId": 7,
+        "description": "Whole grain toast",
+        "loggedAt": "2025-11-17T14:42:29.498Z",
+        "id": 7,
+        "createdAt": "2025-11-19T06:42:29.531Z",
+        "updatedAt": "2025-11-19T06:42:29.531Z"
+      }
+    ]
+  },
+  {
+    "patientId": 1,
+    "valueMgPerdL": 67,
+    "unitEntered": "mg/dL",
+    "category": "AbnormalLow",
+    "notes": "Reading at 14:00",
+    "recordedAt": "2025-11-17T20:42:29.498Z",
+    "id": 8,
+    "createdAt": "2025-11-19T06:42:29.533Z",
+    "updatedAt": "2025-11-19T06:42:29.533Z",
+    "foodActivityLogs": [
+      {
+        "readingId": 8,
+        "description": "Heavy workout, delayed lunch",
+        "loggedAt": "2025-11-17T20:42:29.498Z",
+        "id": 8,
+        "createdAt": "2025-11-19T06:42:29.535Z",
+        "updatedAt": "2025-11-19T06:42:29.535Z"
+      }
+    ]
+  },
+  {
+    "patientId": 1,
+    "valueMgPerdL": 102,
+    "unitEntered": "mg/dL",
+    "category": "Normal",
+    "notes": "Reading at 9:00",
+    "recordedAt": "2025-11-16T15:42:29.498Z",
+    "id": 9,
+    "createdAt": "2025-11-19T06:42:29.537Z",
+    "updatedAt": "2025-11-19T06:42:29.537Z",
+    "foodActivityLogs": [
+      {
+        "readingId": 9,
+        "description": "Greek yogurt",
+        "loggedAt": "2025-11-16T15:42:29.498Z",
+        "id": 9,
+        "createdAt": "2025-11-19T06:42:29.540Z",
+        "updatedAt": "2025-11-19T06:42:29.540Z"
+      }
+    ]
+  },
+  {
+    "patientId": 1,
+    "valueMgPerdL": 198,
+    "unitEntered": "mg/dL",
+    "category": "AbnormalHigh",
+    "notes": "Reading at 15:00",
+    "recordedAt": "2025-11-16T21:42:29.498Z",
+    "id": 10,
+    "createdAt": "2025-11-19T06:42:29.543Z",
+    "updatedAt": "2025-11-19T06:42:29.543Z",
+    "foodActivityLogs": [
+      {
+        "readingId": 10,
+        "description": "Birthday cake, sugary dessert",
+        "loggedAt": "2025-11-16T21:42:29.498Z",
+        "id": 10,
+        "createdAt": "2025-11-19T06:42:29.545Z",
+        "updatedAt": "2025-11-19T06:42:29.545Z"
+      }
+    ]
+  },
+  {
+    "patientId": 1,
+    "valueMgPerdL": 85,
+    "unitEntered": "mg/dL",
+    "category": "Normal",
+    "notes": "Reading at 7:00",
+    "recordedAt": "2025-11-15T13:42:29.498Z",
+    "id": 11,
+    "createdAt": "2025-11-19T06:42:29.546Z",
+    "updatedAt": "2025-11-19T06:42:29.546Z",
+    "foodActivityLogs": [
+      {
+        "readingId": 11,
+        "description": "Scrambled eggs",
+        "loggedAt": "2025-11-15T13:42:29.498Z",
+        "id": 11,
+        "createdAt": "2025-11-19T06:42:29.548Z",
+        "updatedAt": "2025-11-19T06:42:29.548Z"
+      }
+    ]
+  },
+  {
+    "patientId": 1,
+    "valueMgPerdL": 178,
+    "unitEntered": "mg/dL",
+    "category": "Borderline",
+    "notes": "Reading at 8:00",
+    "recordedAt": "2025-11-14T14:42:29.498Z",
+    "id": 12,
+    "createdAt": "2025-11-19T06:42:29.550Z",
+    "updatedAt": "2025-11-19T06:42:29.550Z",
+    "foodActivityLogs": [
+      {
+        "readingId": 12,
+        "description": "Pancakes with syrup",
+        "loggedAt": "2025-11-14T14:42:29.498Z",
+        "id": 12,
+        "createdAt": "2025-11-19T06:42:29.552Z",
+        "updatedAt": "2025-11-19T06:42:29.552Z"
+      }
+    ]
+  },
+  {
+    "patientId": 1,
+    "valueMgPerdL": 94,
+    "unitEntered": "mg/dL",
+    "category": "Normal",
+    "notes": "Reading at 9:00",
+    "recordedAt": "2025-11-13T15:42:29.498Z",
+    "id": 13,
+    "createdAt": "2025-11-19T06:42:29.554Z",
+    "updatedAt": "2025-11-19T06:42:29.554Z",
+    "foodActivityLogs": [
+      {
+        "readingId": 13,
+        "description": "Protein shake",
+        "loggedAt": "2025-11-13T15:42:29.498Z",
+        "id": 13,
+        "createdAt": "2025-11-19T06:42:29.556Z",
+        "updatedAt": "2025-11-19T06:42:29.556Z"
+      }
+    ]
+  },
+  {
+    "patientId": 1,
+    "valueMgPerdL": 190,
+    "unitEntered": "mg/dL",
+    "category": "AbnormalHigh",
+    "notes": "Reading at 10:00",
+    "recordedAt": "2025-11-12T16:42:29.498Z",
+    "id": 14,
+    "createdAt": "2025-11-19T06:42:29.559Z",
+    "updatedAt": "2025-11-19T06:42:29.559Z",
+    "foodActivityLogs": [
+      {
+        "readingId": 14,
+        "description": "Skipped breakfast, stress at work",
+        "loggedAt": "2025-11-12T16:42:29.498Z",
+        "id": 14,
+        "createdAt": "2025-11-19T06:42:29.560Z",
+        "updatedAt": "2025-11-19T06:42:29.560Z"
+      }
+    ]
+  },
+  {
+    "patientId": 2,
+    "valueMgPerdL": 94,
+    "unitEntered": "mmol/L",
+    "category": "Normal",
+    "notes": "Reading at 9:00",
+    "recordedAt": "2025-11-19T15:42:29.498Z",
+    "id": 15,
+    "createdAt": "2025-11-19T06:42:29.563Z",
+    "updatedAt": "2025-11-19T06:42:29.563Z"
+  },
+  {
+    "patientId": 2,
+    "valueMgPerdL": 189,
+    "unitEntered": "mmol/L",
+    "category": "AbnormalHigh",
+    "notes": "Reading at 10:00",
+    "recordedAt": "2025-11-18T16:42:29.498Z",
+    "id": 16,
+    "createdAt": "2025-11-19T06:42:29.566Z",
+    "updatedAt": "2025-11-19T06:42:29.566Z"
+  },
+  {
+    "patientId": 2,
+    "valueMgPerdL": 86,
+    "unitEntered": "mmol/L",
+    "category": "Normal",
+    "notes": "Reading at 8:00",
+    "recordedAt": "2025-11-17T14:42:29.498Z",
+    "id": 17,
+    "createdAt": "2025-11-19T06:42:29.570Z",
+    "updatedAt": "2025-11-19T06:42:29.570Z"
+  },
+  {
+    "patientId": 3,
+    "valueMgPerdL": 105,
+    "unitEntered": "mg/dL",
+    "category": "Normal",
+    "notes": "Reading at 8:00",
+    "recordedAt": "2025-11-19T14:42:29.498Z",
+    "id": 18,
+    "createdAt": "2025-11-19T06:42:29.574Z",
+    "updatedAt": "2025-11-19T06:42:29.574Z"
+  },
+  {
+    "patientId": 3,
+    "valueMgPerdL": 118,
+    "unitEntered": "mg/dL",
+    "category": "Normal",
+    "notes": "Reading at 10:00",
+    "recordedAt": "2025-11-18T16:42:29.498Z",
+    "id": 19,
+    "createdAt": "2025-11-19T06:42:29.578Z",
+    "updatedAt": "2025-11-19T06:42:29.578Z"
+  },
+  {
+    "patientId": 3,
+    "valueMgPerdL": 132,
+    "unitEntered": "mg/dL",
+    "category": "Normal",
+    "notes": "Reading at 9:00",
+    "recordedAt": "2025-11-17T15:42:29.498Z",
+    "id": 20,
+    "createdAt": "2025-11-19T06:42:29.582Z",
+    "updatedAt": "2025-11-19T06:42:29.582Z"
+  },
+  {
+    "patientId": 3,
+    "valueMgPerdL": 98,
+    "unitEntered": "mg/dL",
+    "category": "Normal",
+    "notes": "Reading at 11:00",
+    "recordedAt": "2025-11-16T17:42:29.498Z",
+    "id": 21,
+    "createdAt": "2025-11-19T06:42:29.585Z",
+    "updatedAt": "2025-11-19T06:42:29.585Z"
+  },
+  {
+    "patientId": 3,
+    "valueMgPerdL": 142,
+    "unitEntered": "mg/dL",
+    "category": "Borderline",
+    "notes": "Reading at 8:00",
+    "recordedAt": "2025-11-15T14:42:29.498Z",
+    "id": 22,
+    "createdAt": "2025-11-19T06:42:29.589Z",
+    "updatedAt": "2025-11-19T06:42:29.589Z"
+  },
+  {
+    "patientId": 1,
+    "valueMgPerdL": 120,
+    "unitEntered": "mg/dL",
+    "category": "Normal",
+    "notes": "test",
+    "recordedAt": "2025-11-19T06:58:43.052Z",
+    "id": 23,
+    "createdAt": "2025-11-19T06:58:43.064Z",
+    "updatedAt": "2025-11-19T06:58:43.064Z",
+    "foodActivityLogs": []
+  },
+  {
+    "patientId": 1,
+    "valueMgPerdL": 0,
+    "unitEntered": "mg/dL",
+    "category": "AbnormalLow",
+    "notes": "test",
+    "recordedAt": "2025-11-19T07:22:13.468Z",
+    "id": 24,
+    "createdAt": "2025-11-19T07:22:13.477Z",
+    "updatedAt": "2025-11-19T07:22:13.477Z",
+    "foodActivityLogs": []
+  },
+  {
+    "patientId": 1,
+    "valueMgPerdL": 255,
+    "unitEntered": "mg/dL",
+    "category": "AbnormalHigh",
+    "notes": "test1",
+    "recordedAt": "2025-11-19T07:22:33.607Z",
+    "id": 25,
+    "createdAt": "2025-11-19T07:22:33.615Z",
+    "updatedAt": "2025-11-19T07:22:33.615Z",
+    "foodActivityLogs": []
+  },
+  {
+    "patientId": 1,
+    "valueMgPerdL": 500,
+    "unitEntered": "mg/dL",
+    "category": "AbnormalHigh",
+    "notes": "test",
+    "recordedAt": "2025-11-19T07:25:30.480Z",
+    "id": 26,
+    "createdAt": "2025-11-19T07:25:30.486Z",
+    "updatedAt": "2025-11-19T07:25:30.486Z",
+    "foodActivityLogs": []
+  }
+]

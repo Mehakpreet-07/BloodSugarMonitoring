@@ -1,0 +1,66 @@
+[
+  {
+    "patientId": 1,
+    "specialistId": 1,
+    "triggeredAt": "2025-11-19T04:42:29.498Z",
+    "reason": "More than 3 abnormal readings in the past 7 days",
+    "status": "Pending",
+    "id": 1,
+    "createdAt": "2025-11-19T06:42:29.595Z",
+    "updatedAt": "2025-11-19T06:42:29.595Z",
+    "patientName": "Demo Patient"
+  },
+  {
+    "patientId": 2,
+    "specialistId": 1,
+    "triggeredAt": "2025-11-18T06:42:29.498Z",
+    "reason": "Abnormal high reading detected",
+    "status": "Pending",
+    "id": 2,
+    "createdAt": "2025-11-19T06:42:29.596Z",
+    "updatedAt": "2025-11-19T06:42:29.596Z"
+  },
+  {
+    "patientId": 1,
+    "specialistId": null,
+    "triggeredAt": "2025-11-19T06:58:43.068Z",
+    "reason": "More than 3 abnormal readings in the past 7 days",
+    "status": "Pending",
+    "id": 3,
+    "createdAt": "2025-11-19T06:58:43.068Z",
+    "updatedAt": "2025-11-19T06:58:43.068Z",
+    "patientName": "Demo Patient"
+  },
+  {
+    "patientId": 1,
+    "specialistId": null,
+    "triggeredAt": "2025-11-19T07:22:13.480Z",
+    "reason": "More than 3 abnormal readings in the past 7 days",
+    "status": "Pending",
+    "id": 4,
+    "createdAt": "2025-11-19T07:22:13.480Z",
+    "updatedAt": "2025-11-19T07:22:13.480Z",
+    "patientName": "Demo Patient"
+  },
+  {
+    "patientId": 1,
+    "specialistId": null,
+    "triggeredAt": "2025-11-19T07:22:33.619Z",
+    "reason": "More than 3 abnormal readings in the past 7 days",
+    "status": "Pending",
+    "id": 5,
+    "createdAt": "2025-11-19T07:22:33.619Z",
+    "updatedAt": "2025-11-19T07:22:33.619Z",
+    "patientName": "Demo Patient"
+  },
+  {
+    "patientId": 1,
+    "specialistId": null,
+    "triggeredAt": "2025-11-19T07:25:30.489Z",
+    "reason": "More than 3 abnormal readings in the past 7 days",
+    "status": "Pending",
+    "id": 6,
+    "createdAt": "2025-11-19T07:25:30.489Z",
+    "updatedAt": "2025-11-19T07:25:30.489Z"
+  }
+]

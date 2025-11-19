@@ -1,15 +1,14 @@
 import { store } from '../state/store.js';
 import { resendActivation } from '../api/auth.js';
-// this function will render the login page for users to sign in
+
 export function renderLogin(root){
-  // setting up the login page structure
   root.innerHTML = `
     <section class="panel" style="max-width:520px;margin:4rem auto">
       <h2>Sign in</h2>
       <form id="loginForm" style="margin-top:.8rem">
         <div class="tools">
           <input id="email" type="email" placeholder="you@example.com" required>
-          <input id="pwd" type="password" placeholder="Password" required>
+          <input id="pwd" type="password" placeholder="Password" autocomplete="current-password" required>
           <button class="primary" type="submit">Sign in</button>
         </div>
         <p id="err" class="muted" role="alert" aria-live="polite"></p>
@@ -22,23 +21,23 @@ export function renderLogin(root){
       </p>
       <details class="muted" style="margin-top:.6rem">
         <summary>Demo credentials</summary>
-        Doctor: dr@demo.test / demo<br>
+        Specialist: dr@demo.test / demo<br>
         Admin: admin@demo.test / demo<br>
         Staff: staff@demo.test / demo<br>
         Patient: patient@demo.test / demo
       </details>
     </section>
   `;
-// to easily get elements by their id within the root: means the login page
+
   const form = root.querySelector('#loginForm');
   const err  = root.querySelector('#err');
   const resendBtn = root.querySelector('#resend');
-// this is the event when the form is submitted
+
   form.onsubmit = async e=>{
     e.preventDefault();
     err.textContent = '';
     resendBtn.style.display = 'none';
-// calling the api to log in the user
+
     const ok = await store.login(form.email.value.trim(), form.pwd.value);
     if (!ok.ok){
       const message = ok.error || 'Sign in failed';
@@ -49,11 +48,11 @@ export function renderLogin(root){
       }
       return;
     }
-// redirecting the user based on their role after successful login
+
     const role = store.user?.role;
     location.hash = role === 'patient' ? '#/overview' : '#/dashboard';
   };
-// this is the event when the resend activation button is clicked
+
   resendBtn.onclick = async ()=>{
     const email = form.email.value.trim();
     if (!email) {

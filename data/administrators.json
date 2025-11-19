@@ -1,0 +1,11 @@
+[
+  {
+    "fullName": "System Administrator",
+    "email": "admin@demo.test",
+    "phone": "555-0100",
+    "passwordHash": "bfa95842fb3f5f98b695c4f685c72458f798f3c2dfe2a19eec452ae264c944f2:bf688466618901247f426b97aa407160e6c66a017e9ff8c57cdcdb4cf4465673c82b69e7c2cda786b5a2be3c8c967425eeea271d3be03ffbd2ddf74e25598d73",
+    "id": 1,
+    "createdAt": "2025-11-19T06:42:29.478Z",
+    "updatedAt": "2025-11-19T06:42:29.478Z"
+  }
+]

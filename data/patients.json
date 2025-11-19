@@ -1,0 +1,41 @@
+[
+  {
+    "fullName": "Demo Patient",
+    "email": "patient@demo.test",
+    "phone": "555-0201",
+    "healthCareNumber": "HC123456",
+    "dateOfBirth": "1985-03-15",
+    "preferredUnit": "mg/dL",
+    "passwordHash": "bfa95842fb3f5f98b695c4f685c72458f798f3c2dfe2a19eec452ae264c944f2:bf688466618901247f426b97aa407160e6c66a017e9ff8c57cdcdb4cf4465673c82b69e7c2cda786b5a2be3c8c967425eeea271d3be03ffbd2ddf74e25598d73",
+    "registrationDate": "2025-11-19T06:42:29.491Z",
+    "id": 1,
+    "createdAt": "2025-11-19T06:42:29.491Z",
+    "updatedAt": "2025-11-19T06:42:29.491Z"
+  },
+  {
+    "fullName": "Bhavni Rampal",
+    "email": "bhavni@demo.test",
+    "phone": "555-0202",
+    "healthCareNumber": "HC123457",
+    "dateOfBirth": "1990-07-22",
+    "preferredUnit": "mmol/L",
+    "passwordHash": "bfa95842fb3f5f98b695c4f685c72458f798f3c2dfe2a19eec452ae264c944f2:bf688466618901247f426b97aa407160e6c66a017e9ff8c57cdcdb4cf4465673c82b69e7c2cda786b5a2be3c8c967425eeea271d3be03ffbd2ddf74e25598d73",
+    "registrationDate": "2025-11-19T06:42:29.493Z",
+    "id": 2,
+    "createdAt": "2025-11-19T06:42:29.493Z",
+    "updatedAt": "2025-11-19T06:42:29.493Z"
+  },
+  {
+    "fullName": "Rahul Chauhan",
+    "email": "rahul@demo.test",
+    "phone": "555-0203",
+    "healthCareNumber": "HC123458",
+    "dateOfBirth": "1988-11-30",
+    "preferredUnit": "mg/dL",
+    "passwordHash": "bfa95842fb3f5f98b695c4f685c72458f798f3c2dfe2a19eec452ae264c944f2:bf688466618901247f426b97aa407160e6c66a017e9ff8c57cdcdb4cf4465673c82b69e7c2cda786b5a2be3c8c967425eeea271d3be03ffbd2ddf74e25598d73",
+    "registrationDate": "2025-11-19T06:42:29.496Z",
+    "id": 3,
+    "createdAt": "2025-11-19T06:42:29.496Z",
+    "updatedAt": "2025-11-19T06:42:29.496Z"
+  }
+]

@@ -1,171 +1,210 @@
-// public/js/views/overview.js
 import { store } from '../state/store.js';
 import { getPatientReadings } from '../api/patients.js';
 import { getThresholds } from '../api/settings.js';
 import { addReading } from '../api/readings.js';
 import { drawLine } from '../components/chart.js';
 import { rowsHtml } from '../components/table.js';
-import { fmtDate } from '../utils/dates.js';
-import { toDisplay, categorizeByThresholds } from '../utils/units.js';
 import { makeAiAdvice, adviceHtml } from '../utils/ai.js';
-// this function will render the overview page for patients to review their own readings with AI tips
+
+const MS_PER_DAY = 86400000;
+
+function formatDate(ts) {
+  if (!ts) return '-';
+  return new Date(ts).toLocaleString('en-US', {
+    month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+  });
+}
+
+// Internal helper to fetch feedback
+async function getMyFeedback() {
+    try {
+        const r = await fetch('/api/feedback?patientId=' + store.user.patientId);
+        const d = await r.json();
+        return d.feedback || [];
+    } catch { return []; }
+}
+
 export async function renderOverview(root){
   const me = store.user || {};
 
-// if the user is not a patient , show a message
   if (me.role !== 'patient'){
-    root.innerHTML = `
-      <section class="panel">
-        <h2>Overview</h2>
-        <p class="muted">
-          This page is for patients to review their own readings with AI tips.
-          Please use Dashboard and Patients for clinical workflows.
-        </p>
-      </section>`;
+    root.innerHTML = `<section class="panel"><h2>Overview</h2><p class="muted">Patient view only.</p></section>`;
     return;
   }
 
-// for patient users , show their recent readings with AI tips
-
   const patientId = me.patientId;
-  const [thr, all] = await Promise.all([
+  
+  // Fetch data + Feedback
+  const [thr, allReadings, feedbackList] = await Promise.all([
     getThresholds(),
-    getPatientReadings(patientId)
+    getPatientReadings(patientId),
+    getMyFeedback()
   ]);
 
-  let list = all.slice().sort((a,b)=> a.ts - b.ts);
+  function getCat(val) {
+    if (val <= thr.normalMax) return 'Normal';
+    if (val <= thr.borderlineMax) return 'Borderline';
+    return 'Abnormal';
+  }
+
+  const unitLabel = thr.unit === 'mmol' ? 'mmol/L' : 'mg/dL';
+  function displayVal(val) {
+     if (thr.unit === 'mmol') return (val * 0.0555).toFixed(1) + ' mmol/L';
+     return Math.round(val) + ' mg/dL';
+  }
+
+  // Latest feedback message
+  const latestFeedback = feedbackList.length > 0 ? feedbackList[0] : null;
 
   root.innerHTML = `
     <section class="panel">
       <h2>My Recent Readings</h2>
-
       <div class="tools" style="margin-bottom:.5rem">
-        <label style="font-size:.9rem">
-          Range
-          <select id="rangeSel">
-            <option value="7">Last 7</option>
-            <option value="14">Last 14</option>
-            <option value="30">Last 30</option>
-            <option value="all">All</option>
-          </select>
-        </label>
-        <label style="font-size:.9rem">
-          Category
-          <select id="catSel">
-            <option value="">All</option>
-            <option value="Normal">Normal</option>
-            <option value="Borderline">Borderline</option>
-            <option value="Abnormal">Abnormal</option>
-          </select>
-        </label>
+        <select id="rangeSel">
+          <option value="7">Last 7 Days</option>
+          <option value="30">Last 30 Days</option>
+          <option value="all">All Time</option>
+        </select>
+        <select id="catSel">
+          <option value="">All Categories</option>
+          <option value="Normal">Normal</option>
+          <option value="Borderline">Borderline</option>
+          <option value="Abnormal">Abnormal</option>
+        </select>
       </div>
-
       <canvas id="myTrend" style="height:260px"></canvas>
-      <details class="muted" style="margin-top:.5rem">
+      <details class="muted" style="margin-top:.5rem" open>
         <summary>Show data table</summary>
         <table class="list" id="myTable"></table>
       </details>
-      <p id="empty" class="muted" style="display:${list.length ? 'none' : 'block'}">No readings yet.</p>
+      <p id="empty" class="muted" style="display:none; padding:1rem; text-align:center">No readings found.</p>
     </section>
 
-    <section class="grid" style="grid-template-columns:1fr 1fr; gap:1rem">
+    <div class="panel" style="margin-top:1rem; border-left: 4px solid var(--accent);">
+      <h3>Specialist Feedback</h3>
+      ${latestFeedback ? `
+        <p style="margin-top:0.5rem; font-size:1.1rem">"${latestFeedback.comment}"</p>
+        <div class="muted" style="font-size:0.85rem; margin-top:0.5rem">
+           — ${latestFeedback.specialistName || 'Specialist'}, ${formatDate(latestFeedback.createdAt)}
+        </div>
+      ` : `<p class="muted" style="margin-top:0.5rem">No feedback received yet.</p>`}
+    </div>
+
+    <section class="grid" style="grid-template-columns:1fr 1fr; gap:1rem; margin-top:1rem">
       <div class="panel">
-        <h3>AI Advice</h3>
+        <h3>AI Insights</h3>
         <div id="aiBox" class="muted" style="margin-top:.6rem"></div>
       </div>
       <div class="panel">
-        <h3>About your thresholds</h3>
+        <h3>Your Thresholds</h3>
         <p class="muted" style="margin-top:.6rem">
-          Normal up to <strong>${thr.normalMax}</strong> mg/dL,
-          Borderline up to <strong>${thr.borderlineMax}</strong> mg/dL.
-          Display unit: <strong>${thr.unit === 'mmol' ? 'mmol/L' : 'mg/dL'}</strong>.
+          Normal: &le; <strong>${thr.normalMax}</strong><br>
+          Borderline: &le; <strong>${thr.borderlineMax}</strong><br>
+          Unit: <strong>${unitLabel}</strong>
         </p>
       </div>
     </section>
 
     <section class="panel" style="margin-top:1rem">
-      <h3>Add new reading</h3>
+      <h3>Log New Reading</h3>
       <form id="addForm" class="tools" style="margin-top:.5rem">
-        <input id="val" type="number" placeholder="mg/dL" min="0" required>
-        <input id="note" placeholder="Note about food, activity, or symptoms (optional)">
-        <button class="primary" type="submit">Add</button>
+        <input id="val" type="number" placeholder="Value" min="0" step="0.1" required>
+        <input id="note" placeholder="Notes">
+        <button class="primary" type="submit">Save</button>
       </form>
-      <p class="muted" style="margin-top:.4rem">
-        Readings are automatically categorized as Normal, Borderline, or Abnormal
-        using your current thresholds.
-      </p>
-      <p id="addMsg" class="muted" style="margin-top:.2rem"></p>
+      <p id="addMsg" class="muted" style="margin-top:.5rem"></p>
     </section>
   `;
-// if there are no readings , stop here
-  if (!list.length) return;
 
-  const withCat = r => ({ ...r, cat: categorizeByThresholds(r.valueMgdl, thr) });
+  const rangeSel = root.querySelector('#rangeSel');
+  const catSel = root.querySelector('#catSel');
+  const tableEl = root.querySelector('#myTable');
+  const emptyEl = root.querySelector('#empty');
+  const chartEl = 'myTrend'; 
 
-// this is for the data table of last 14 readings
-  const head = `<thead><tr><th>Date</th><th>Reading</th><th>Category</th></tr></thead>`;
-  const body = rowsHtml(
-    list.slice(-14).reverse().map(r => [
-      fmtDate(r.ts),
-      toDisplay(r.valueMgdl, thr.unit),
-      { html: `<span class="pill p-${withCat(r).cat}">${withCat(r).cat}</span>` }
-    ])
-  );
-  document.getElementById('myTable').innerHTML = head + `<tbody>${body}</tbody>`;
+  function render() {
+    const rangeVal = rangeSel.value;
+    const catVal = catSel.value;
+    const now = Date.now();
 
-// this is for the trend chart of last 14 readings
-  const pts = list.slice(-14).map(withCat).map(r => ({ x:r.ts, y:r.valueMgdl, cat:r.cat }));
-  drawLine('myTrend', pts.length ? pts : [{ x: Date.now(), y: 0, cat: 'Normal' }]);
+    let data = allReadings.map(r => ({
+        ...r,
+        cat: r.cat || getCat(r.valueMgdl),
+        ts: new Date(r.ts || r.recordedAt).getTime()
+    }));
 
-// patient will get the AI advice based on their readings
-  const tips = makeAiAdvice(list, thr);
-  document.getElementById('aiBox').innerHTML = adviceHtml(tips);
+    if (rangeVal !== 'all') {
+      const days = parseInt(rangeVal, 10);
+      const cutoff = now - (days * MS_PER_DAY);
+      data = data.filter(r => !isNaN(r.ts) && r.ts >= cutoff);
+    }
+    if (catVal) data = data.filter(r => r.cat === catVal);
+    data.sort((a,b) => a.ts - b.ts);
 
-  // Add reading form wiring
-  function wireAddForm(){
-    const form   = root.querySelector('#addForm');
-    const valEl  = root.querySelector('#val');
-    const noteEl = root.querySelector('#note');
-    const msgEl  = root.querySelector('#addMsg');
+    if (data.length === 0) {
+      emptyEl.style.display = 'block';
+      tableEl.style.display = 'none';
+      drawLine(chartEl, []); 
+    } else {
+      emptyEl.style.display = 'none';
+      tableEl.style.display = 'table';
+      drawLine(chartEl, data.map(r => ({ x:r.ts, y:r.valueMgdl, cat:r.cat })));
 
-    form.onsubmit = async e => {
-      e.preventDefault();
-      msgEl.textContent = '';
+      const tableRows = data.slice().reverse().map(r => [
+        formatDate(r.ts),
+        displayVal(r.valueMgdl),
+        { html: `<span class="pill p-${r.cat}">${r.cat}</span>` },
+        r.notes || r.note || ''
+      ]);
+      
+      const head = `<thead><tr><th>Date</th><th>Value</th><th>Category</th><th>Notes</th></tr></thead>`;
+      tableEl.innerHTML = head + `<tbody>${rowsHtml(tableRows)}</tbody>`;
+    }
 
-      const v = Number(valEl.value);
-      if (Number.isNaN(v) || v < 0) {
-        msgEl.textContent = 'Please enter a valid value.';
-        return;
-      }
-
-      const payload = {
-        patientId,
-        ts: Date.now(),
-        valueMgdl: v,
-        note: noteEl.value?.trim() || ''
-      };
-
-      const res = await addReading(payload);
-      if (!res || res.ok !== true) {
-        msgEl.textContent = 'Could not save reading.';
-        return;
-      }
-
-      // For mocks we just push it; for real backend you may want to use res.id
-      list = list.concat({ id: res.id || Date.now(), ...payload }).sort((a,b)=>a.ts - b.ts);
-
-      valEl.value = '';
-      noteEl.value = '';
-      msgEl.textContent = 'Saved ✓';
-
-      // Reapply filters with updated data
-      applyFilters();
-
-      // Update AI advice as well
-      const tips2 = makeAiAdvice(list, thr);
-      document.getElementById('aiBox').innerHTML = adviceHtml(tips2);
-    };
+    const recent = allReadings.sort((a,b)=> a.ts - b.ts).slice(-14);
+    const tips = makeAiAdvice(recent, thr);
+    root.querySelector('#aiBox').innerHTML = adviceHtml(tips);
   }
 
-  wireAddForm();
+  rangeSel.onchange = render;
+  catSel.onchange = render;
+  render();
+
+  const addForm = root.querySelector('#addForm');
+  addForm.onsubmit = async (e) => {
+    e.preventDefault();
+    const msg = root.querySelector('#addMsg');
+    msg.textContent = '';
+
+    const valInput = root.querySelector('#val');
+    const noteInput = root.querySelector('#note');
+    
+    let v = parseFloat(valInput.value);
+    if (isNaN(v) || v < 0) { msg.textContent = 'Invalid value'; return; }
+
+    const apiUnit = thr.unit === 'mmol' ? 'mmol/L' : 'mg/dL';
+    
+    const payload = {
+      patientId,
+      value: v,
+      unit: apiUnit,
+      notes: noteInput.value.trim(),
+      recordedAt: new Date().toISOString()
+    };
+
+    const res = await addReading(payload);
+    if (!res.ok) {
+      msg.textContent = res.error || 'Error saving.';
+      return;
+    }
+
+    let valMg = v;
+    if (apiUnit === 'mmol/L') valMg = Math.round(v * 18);
+    
+    allReadings.push({ ...payload, id: res.reading?.id || Date.now(), ts: Date.now(), valueMgdl: valMg });
+    valInput.value = '';
+    noteInput.value = '';
+    msg.textContent = 'Saved ✓';
+    render();
+  };
 }

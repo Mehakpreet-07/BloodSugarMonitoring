@@ -1,11 +1,20 @@
-// public/js/views/patients.js
 import { listPatients, getPatientReadings } from '../api/patients.js';
 import { addReading }                       from '../api/readings.js';
 import { getThresholds }                    from '../api/settings.js';
 import { toDisplay, categorizeByThresholds }from '../utils/units.js';
 import { rowsHtml }                         from '../components/table.js';
 import { drawLine }                         from '../components/chart.js';
-// this function will render the patients page for doctor or staff
+
+// Internal Helper to send feedback
+async function sendFeedback(patientId, comment) {
+  const r = await fetch('/api/feedback', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ patientId, comment })
+  });
+  return r.json();
+}
+
 export async function renderPatients(root){
   root.innerHTML = `
     <section class="panel">
@@ -33,12 +42,19 @@ export async function renderPatients(root){
       <p class="muted" id="dMeta"></p>
 
       <h4>Last 7 readings</h4>
-      <canvas id="dChart" style="height:200px"></canvas>
+      <canvas id="dChart" style="height:180px"></canvas>
 
-      <h4>Recent</h4>
+      <h4>Recent Data</h4>
       <table class="list"><tbody id="dList"></tbody></table>
 
-      <h4 style="margin-top:1rem">Add new reading</h4>
+      <h4 style="margin-top:1.5rem">Give Feedback</h4>
+      <form id="fbForm" style="margin-bottom:1rem">
+        <textarea id="fbText" rows="3" placeholder="Write advice or feedback for the patient..." style="width:100%; margin-bottom:.5rem"></textarea>
+        <button class="primary" type="submit">Send Feedback</button>
+        <span id="fbMsg" class="muted" style="margin-left:.5rem"></span>
+      </form>
+
+      <h4 style="border-top:1px solid var(--line); padding-top:1rem">Add Manual Reading</h4>
       <form id="addForm">
         <div class="row">
           <input id="val" type="number" placeholder="mg/dL" min="0" required>
@@ -46,24 +62,19 @@ export async function renderPatients(root){
         </div>
         <button class="primary" type="submit">Add</button>
       </form>
-      <p class="muted" style="margin-top:.4rem">
-        Auto categorized by thresholds in Settings.
-      </p>
     </aside>
   `;
 
-  // this helps to get and render the patients list
   let data = await listPatients();
   let sortKey = 'name', sortDir = 1;
-// to get various elements by their id within the root: means the patients page 
-// upper line means the patients page
+
   const drawer = root.querySelector('#drawer');
   const closeBtn = root.querySelector('#drawerClose');
   const q = root.querySelector('#q');
   const go = root.querySelector('#go');
   const body = root.querySelector('#body');
   const table = root.querySelector('#ptbl');
-// to render the rows of patients in the table
+
   function renderRows(rows){
     body.innerHTML = rowsHtml(rows.map(p => [
       p.name,
@@ -80,15 +91,16 @@ export async function renderPatients(root){
       };
     });
   }
-// this will helps to apply search and sorting on the patients list
+
   function apply(){
     const term = q.value.trim().toLowerCase();
     let rows = data.filter(p => !term || p.name.toLowerCase().includes(term));
     rows.sort((a,b)=> (a[sortKey] > b[sortKey] ? 1 : -1) * sortDir);
     renderRows(rows);
   }
-// helps in searching and sorting the patients list
+
   go.onclick = async ()=>{ data = await listPatients(q.value); apply(); };
+  
   table.querySelectorAll('th[data-k]').forEach(th=>{
     th.onclick = ()=>{
       const k = th.getAttribute('data-k');
@@ -109,14 +121,11 @@ export async function renderPatients(root){
     let readings = await getPatientReadings(p.id);
     const thr  = await getThresholds();
     const unit = thr.unit;
-
     const withCat = r => ({ ...r, cat: categorizeByThresholds(r.valueMgdl, thr) });
 
-    // header/meta
     root.querySelector('#dName').textContent = p.name;
     root.querySelector('#dMeta').textContent = `${p.last} • ${p.cat}`;
 
-    // recent list
     const recent = readings.slice(-7).reverse().map(withCat);
     root.querySelector('#dList').innerHTML = rowsHtml(
       recent.map(r => [
@@ -126,15 +135,36 @@ export async function renderPatients(root){
       ])
     );
 
-    // chart
     const pts = readings.slice(-7).map(withCat).map(r => ({ x:r.ts, y:r.valueMgdl, cat:r.cat }));
     drawLine('dChart', pts.length ? pts : [{ x: Date.now(), y: 0, cat: 'Normal' }]);
 
-    // open
     drawer.classList.add('open');
     drawer.setAttribute('aria-hidden','false');
 
-    // add form
+    // Wire Feedback Form
+    const fbForm = root.querySelector('#fbForm');
+    const fbText = root.querySelector('#fbText');
+    const fbMsg  = root.querySelector('#fbMsg');
+    
+    fbMsg.textContent = '';
+    fbText.value = '';
+
+    fbForm.onsubmit = async (e) => {
+        e.preventDefault();
+        const comment = fbText.value.trim();
+        if(!comment) return;
+        
+        fbMsg.textContent = 'Sending...';
+        const res = await sendFeedback(p.id, comment);
+        if(res.ok) {
+            fbMsg.textContent = 'Sent!';
+            fbText.value = '';
+        } else {
+            fbMsg.textContent = 'Error.';
+        }
+    };
+
+    // Wire Add Form
     const form  = root.querySelector('#addForm');
     const valEl = root.querySelector('#val');
     const noteEl= root.querySelector('#note');
@@ -149,7 +179,8 @@ export async function renderPatients(root){
       if (!res || res.ok !== true) return;
 
       readings = readings.concat({ id: res.id || Date.now(), ...payload });
-
+      
+      // Re-render list and chart
       const recent2 = readings.slice(-7).reverse().map(withCat);
       root.querySelector('#dList').innerHTML = rowsHtml(
         recent2.map(r => [

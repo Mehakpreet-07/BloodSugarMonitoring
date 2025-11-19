@@ -1,6 +1,6 @@
 // public/js/config.js
 //this file contains configuration settings for the application which can be modified as needed
-export const USE_MOCKS = true;                 // unrelated to weather; keep as you like
+export const USE_MOCKS =false;                 // unrelated to weather; keep as you like
 export const BASE_API  = '/api';
 // Weather configuration
 export const WEATHER_PROVIDER = 'openweather'; // <-- use OpenWeather

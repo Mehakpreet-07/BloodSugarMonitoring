@@ -1,4 +1,3 @@
-// public/js/components/sidebar.js
 import { store } from '../state/store.js';
 
 export function mountSidebar(node, onNav){
@@ -34,20 +33,16 @@ export function mountSidebar(node, onNav){
       return [
         { hash:'#/dashboard', label:'Dashboard' },
         { hash:'#/patients',  label:'Patients' },
-        // Alerts page exists but is reachable from bell / dashboard,
-        // so you can leave it out of the sidebar if you want.
         { hash:'#/settings',  label:'Settings' },
         { hash:'#/emails',    label:'Email templates' },
         { hash:'#/profile',   label:'Profile' }
       ];
     }
 
-    // Doctor and any other clinical role
+    // Specialist (Doctor) - Removed 'Settings' as requested
     return [
       { hash:'#/dashboard', label:'Dashboard' },
       { hash:'#/patients',  label:'Patients' },
-      // Alerts omitted from sidebar; accessed via bell + dashboard.
-      { hash:'#/settings',  label:'Settings' },
       { hash:'#/profile',   label:'Profile' }
     ];
   }

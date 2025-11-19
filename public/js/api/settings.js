@@ -1,16 +1,9 @@
-// public/js/api/settings.js
 import { USE_MOCKS } from '../config.js';
 
-// IMPORTANT: when serving /public/index.html with Live Server,
-// mock files must be relative: "mock/..." (not "/mock/...")
 const base = USE_MOCKS ? 'mock' : '/api';
-
 const LS_KEY = 'bs_thresholds_v1';
-const DEFAULTS = { normalMax: 120, borderlineMax: 180, unit: 'mgdl' };
-// what is fetched/returned: { normalMax:number, borderlineMax:number, unit:'mgdl'|'mmol' }
-// meaning: normal ≤ normalMax < borderlineMax ≤ high
-//Get the blood sugar threshold settings. First check local cache, then server, then defaults.
-// Safe JSON helper
+const DEFAULTS = { normalMax: 140, borderlineMax: 180, unit: 'mgdl' };
+
 async function safeJson(res, context = '') {
   if (!res.ok) {
     throw new Error(`[settings] ${context} HTTP ${res.status} (${res.url})`);
@@ -21,17 +14,13 @@ async function safeJson(res, context = '') {
     throw new Error(`[settings] ${context} invalid JSON from ${res.url}`);
   }
 }
-//getThresholds fetches blood sugar threshold settings from server or mock file(if USE_MOCKS is true: means no database connection)
+
 export async function getThresholds() {
-  // 1) cached (mock persists via localStorage)
   try {
     const cached = localStorage.getItem(LS_KEY);
     if (cached) return JSON.parse(cached);
-  } catch (_) {
-    /* ignore localStorage errors */
-  }
+  } catch (_) {}
 
-  // 2) fetch
   try {
     if (USE_MOCKS) {
       const r = await fetch(`${base}/settings.json`, { cache: 'no-store' });
@@ -40,31 +29,32 @@ export async function getThresholds() {
       return data;
     } else {
       const r = await fetch(`/api/settings/thresholds`, { credentials: 'include' });
-      return await safeJson(r, 'getThresholds');
+      const json = await safeJson(r, 'getThresholds');
+      
+      if (json.thresholds && Array.isArray(json.thresholds) && json.thresholds.length > 0) {
+        return json.thresholds[0];
+      }
+      return DEFAULTS;
     }
   } catch (e) {
     console.warn(e.message);
-    // 3) final fallback
     return DEFAULTS;
   }
 }
 
 export async function putThresholds(payload) {
-  // payload: { normalMax:number, borderlineMax:number, unit:'mgdl'|'mmol' }
   const clean = {
     normalMax: Number(payload.normalMax),
     borderlineMax: Number(payload.borderlineMax),
     unit: payload.unit === 'mmol' ? 'mmol' : 'mgdl'
   };
 
-  // basic guard
   if (!(clean.normalMax >= 0) || !(clean.borderlineMax > clean.normalMax)) {
     throw new Error('[settings] Validation failed: borderlineMax must be > normalMax, both ≥ 0');
   }
 
   try {
     if (USE_MOCKS) {
-      // persist locally in mock mode
       try { localStorage.setItem(LS_KEY, JSON.stringify(clean)); } catch (_) {}
       document.dispatchEvent(new CustomEvent('settings:thresholdsChanged', { detail: clean }));
       return { ok: true, ...clean };
@@ -84,4 +74,3 @@ export async function putThresholds(payload) {
     throw e;
   }
 }
-

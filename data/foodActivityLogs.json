@@ -1,0 +1,170 @@
+[
+  {
+    "readingId": 1,
+    "description": "Oatmeal with berries",
+    "loggedAt": "2025-11-19T14:42:29.498Z",
+    "id": 1,
+    "createdAt": "2025-11-19T06:42:29.501Z",
+    "updatedAt": "2025-11-19T06:42:29.501Z"
+  },
+  {
+    "readingId": 2,
+    "description": "Pizza and soda",
+    "loggedAt": "2025-11-19T18:42:29.498Z",
+    "id": 2,
+    "createdAt": "2025-11-19T06:42:29.505Z",
+    "updatedAt": "2025-11-19T06:42:29.505Z"
+  },
+  {
+    "readingId": 4,
+    "description": "Skipped breakfast",
+    "loggedAt": "2025-11-18T13:42:29.498Z",
+    "id": 4,
+    "createdAt": "2025-11-19T06:42:29.517Z",
+    "updatedAt": "2025-11-19T06:42:29.517Z"
+  },
+  {
+    "readingId": 5,
+    "description": "Fast food burger",
+    "loggedAt": "2025-11-18T19:42:29.498Z",
+    "id": 5,
+    "createdAt": "2025-11-19T06:42:29.521Z",
+    "updatedAt": "2025-11-19T06:42:29.521Z"
+  },
+  {
+    "readingId": 6,
+    "description": "Grilled chicken salad",
+    "loggedAt": "2025-11-19T01:42:29.498Z",
+    "id": 6,
+    "createdAt": "2025-11-19T06:42:29.526Z",
+    "updatedAt": "2025-11-19T06:42:29.526Z"
+  },
+  {
+    "readingId": 7,
+    "description": "Whole grain toast",
+    "loggedAt": "2025-11-17T14:42:29.498Z",
+    "id": 7,
+    "createdAt": "2025-11-19T06:42:29.531Z",
+    "updatedAt": "2025-11-19T06:42:29.531Z"
+  },
+  {
+    "readingId": 8,
+    "description": "Heavy workout, delayed lunch",
+    "loggedAt": "2025-11-17T20:42:29.498Z",
+    "id": 8,
+    "createdAt": "2025-11-19T06:42:29.535Z",
+    "updatedAt": "2025-11-19T06:42:29.535Z"
+  },
+  {
+    "readingId": 9,
+    "description": "Greek yogurt",
+    "loggedAt": "2025-11-16T15:42:29.498Z",
+    "id": 9,
+    "createdAt": "2025-11-19T06:42:29.540Z",
+    "updatedAt": "2025-11-19T06:42:29.540Z"
+  },
+  {
+    "readingId": 10,
+    "description": "Birthday cake, sugary dessert",
+    "loggedAt": "2025-11-16T21:42:29.498Z",
+    "id": 10,
+    "createdAt": "2025-11-19T06:42:29.545Z",
+    "updatedAt": "2025-11-19T06:42:29.545Z"
+  },
+  {
+    "readingId": 11,
+    "description": "Scrambled eggs",
+    "loggedAt": "2025-11-15T13:42:29.498Z",
+    "id": 11,
+    "createdAt": "2025-11-19T06:42:29.548Z",
+    "updatedAt": "2025-11-19T06:42:29.548Z"
+  },
+  {
+    "readingId": 12,
+    "description": "Pancakes with syrup",
+    "loggedAt": "2025-11-14T14:42:29.498Z",
+    "id": 12,
+    "createdAt": "2025-11-19T06:42:29.552Z",
+    "updatedAt": "2025-11-19T06:42:29.552Z"
+  },
+  {
+    "readingId": 13,
+    "description": "Protein shake",
+    "loggedAt": "2025-11-13T15:42:29.498Z",
+    "id": 13,
+    "createdAt": "2025-11-19T06:42:29.556Z",
+    "updatedAt": "2025-11-19T06:42:29.556Z"
+  },
+  {
+    "readingId": 14,
+    "description": "Skipped breakfast, stress at work",
+    "loggedAt": "2025-11-12T16:42:29.498Z",
+    "id": 14,
+    "createdAt": "2025-11-19T06:42:29.560Z",
+    "updatedAt": "2025-11-19T06:42:29.560Z"
+  },
+  {
+    "readingId": 15,
+    "description": "Breakfast cereal",
+    "loggedAt": "2025-11-19T15:42:29.498Z",
+    "id": 15,
+    "createdAt": "2025-11-19T06:42:29.564Z",
+    "updatedAt": "2025-11-19T06:42:29.564Z"
+  },
+  {
+    "readingId": 16,
+    "description": "Sweetened coffee and pastry",
+    "loggedAt": "2025-11-18T16:42:29.498Z",
+    "id": 16,
+    "createdAt": "2025-11-19T06:42:29.568Z",
+    "updatedAt": "2025-11-19T06:42:29.568Z"
+  },
+  {
+    "readingId": 17,
+    "description": "Toast and jam",
+    "loggedAt": "2025-11-17T14:42:29.498Z",
+    "id": 17,
+    "createdAt": "2025-11-19T06:42:29.572Z",
+    "updatedAt": "2025-11-19T06:42:29.572Z"
+  },
+  {
+    "readingId": 18,
+    "description": "Morning tea",
+    "loggedAt": "2025-11-19T14:42:29.498Z",
+    "id": 18,
+    "createdAt": "2025-11-19T06:42:29.576Z",
+    "updatedAt": "2025-11-19T06:42:29.576Z"
+  },
+  {
+    "readingId": 19,
+    "description": "Breakfast sandwich",
+    "loggedAt": "2025-11-18T16:42:29.498Z",
+    "id": 19,
+    "createdAt": "2025-11-19T06:42:29.580Z",
+    "updatedAt": "2025-11-19T06:42:29.580Z"
+  },
+  {
+    "readingId": 20,
+    "description": "Cereal with milk",
+    "loggedAt": "2025-11-17T15:42:29.498Z",
+    "id": 20,
+    "createdAt": "2025-11-19T06:42:29.583Z",
+    "updatedAt": "2025-11-19T06:42:29.583Z"
+  },
+  {
+    "readingId": 21,
+    "description": "Fruit salad",
+    "loggedAt": "2025-11-16T17:42:29.498Z",
+    "id": 21,
+    "createdAt": "2025-11-19T06:42:29.587Z",
+    "updatedAt": "2025-11-19T06:42:29.587Z"
+  },
+  {
+    "readingId": 22,
+    "description": "Pancakes",
+    "loggedAt": "2025-11-15T14:42:29.498Z",
+    "id": 22,
+    "createdAt": "2025-11-19T06:42:29.591Z",
+    "updatedAt": "2025-11-19T06:42:29.591Z"
+  }
+]

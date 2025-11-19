@@ -1,0 +1,28 @@
+{
+  "name": "blood-sugar-monitoring-system",
+  "version": "1.0.0",
+  "description": "Online Blood Sugar Monitoring System - A comprehensive web application for diabetic patient management",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node server/server.js",
+    "seed": "node scripts/seed-data.js",
+    "hash-password": "node scripts/hash-password.js"
+  },
+  "keywords": [
+    "blood-sugar",
+    "diabetes",
+    "health-monitoring",
+    "medical",
+    "patient-management"
+  ],
+  "author": "Aanchman, Bhavni, Kripa, Mehak, Rahul",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "private": true,
+  "dependencies": {
+    "nodemailer": "^7.0.10"
+  }
+}
