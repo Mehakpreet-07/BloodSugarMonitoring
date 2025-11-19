@@ -1,9 +1,6 @@
 // public/js/api/templates.js
-<<<<<<< HEAD
-=======
 //functionality to get and save email templates for blood sugar monitoring application
 // templates include account activation, high reading alerts, and weekly summaries
->>>>>>> a0ebb772a05060876390ac037a3fb33d9f953abe
 import { USE_MOCKS } from '../config.js';
 
 const base = USE_MOCKS ? 'mock' : '/api';

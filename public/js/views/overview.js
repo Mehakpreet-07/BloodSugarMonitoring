@@ -25,8 +25,6 @@ export async function renderOverview(root){
     return;
   }
 
-<<<<<<< HEAD
-=======
 // for patient users , show their recent readings with AI tips
 >>>>>>> a0ebb772a05060876390ac037a3fb33d9f953abe
   const patientId = me.patientId;
