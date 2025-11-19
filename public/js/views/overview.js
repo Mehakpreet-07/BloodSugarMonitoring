@@ -26,19 +26,15 @@ export async function renderOverview(root){
   }
 
 // for patient users , show their recent readings with AI tips
->>>>>>> a0ebb772a05060876390ac037a3fb33d9f953abe
+
   const patientId = me.patientId;
   const [thr, all] = await Promise.all([
     getThresholds(),
     getPatientReadings(patientId)
   ]);
-<<<<<<< HEAD
+
   let list = all.slice().sort((a,b)=> a.ts - b.ts);
 
-=======
-  const list = all.slice().sort((a,b)=> a.ts - b.ts);
-// set up the overview page structure
->>>>>>> a0ebb772a05060876390ac037a3fb33d9f953abe
   root.innerHTML = `
     <section class="panel">
       <h2>My Recent Readings</h2>
@@ -101,59 +97,6 @@ export async function renderOverview(root){
       <p id="addMsg" class="muted" style="margin-top:.2rem"></p>
     </section>
   `;
-<<<<<<< HEAD
-
-  if (!list.length) {
-    // Still allow adding readings even if empty
-    wireAddForm();
-    return;
-  }
-
-  const rangeSel = root.querySelector('#rangeSel');
-  const catSel   = root.querySelector('#catSel');
-
-  const withCat = r => ({ ...r, cat: categorizeByThresholds(r.valueMgdl, thr) });
-
-  function applyFilters(){
-    const rangeVal = rangeSel.value;
-    const catVal   = catSel.value;
-
-    let filtered = list.slice().map(withCat);
-
-    if (rangeVal !== 'all') {
-      const n = Number(rangeVal);
-      filtered = filtered.slice(-n);
-    }
-
-    if (catVal) {
-      filtered = filtered.filter(r => r.cat === catVal);
-    }
-
-    // Table
-    const head = `<thead><tr><th>Date</th><th>Reading</th><th>Category</th></tr></thead>`;
-    const body = rowsHtml(
-      filtered.slice().reverse().map(r => [
-        fmtDate(r.ts),
-        toDisplay(r.valueMgdl, thr.unit),
-        { html: `<span class="pill p-${r.cat}">${r.cat}</span>` }
-      ])
-    );
-    document.getElementById('myTable').innerHTML = head + `<tbody>${body}</tbody>`;
-
-    // Chart
-    const pts = filtered.map(r => ({ x:r.ts, y:r.valueMgdl, cat:r.cat }));
-    drawLine('myTrend', pts.length ? pts : [{ x: Date.now(), y: 0, cat: 'Normal' }]);
-
-    document.getElementById('empty').style.display = filtered.length ? 'none' : 'block';
-  }
-
-  rangeSel.onchange = applyFilters;
-  catSel.onchange   = applyFilters;
-
-  applyFilters();
-
-  // AI tips (always use full list so advice is based on last 14)
-=======
 // if there are no readings , stop here
   if (!list.length) return;
 
@@ -175,7 +118,6 @@ export async function renderOverview(root){
   drawLine('myTrend', pts.length ? pts : [{ x: Date.now(), y: 0, cat: 'Normal' }]);
 
 // patient will get the AI advice based on their readings
->>>>>>> a0ebb772a05060876390ac037a3fb33d9f953abe
   const tips = makeAiAdvice(list, thr);
   document.getElementById('aiBox').innerHTML = adviceHtml(tips);
 

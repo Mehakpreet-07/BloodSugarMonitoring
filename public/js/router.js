@@ -12,13 +12,6 @@ import { renderProfile }    from './views/profile.js';
 import { renderOverview }   from './views/overview.js';
 import { renderLogin }      from './views/login.js';
 import { renderRegister }   from './views/register.js';
-<<<<<<< HEAD
-=======
-
-
-// it will be the current logged in user 
-
->>>>>>> a0ebb772a05060876390ac037a3fb33d9f953abe
 import { renderEmailTemplates } from './views/emailTemplates.js';
 import { store }            from './state/store.js';
 
@@ -39,23 +32,11 @@ const routes = {
   '#/emails'   : renderEmailTemplates
 };
 
-<<<<<<< HEAD
-=======
-
-// main router Function
-// it will be called when the hash is changes or when the page is loaded
-// it will decide which page to be shown on the basis of URL/ whther teh user is logged in/ or on the user role 
-
->>>>>>> a0ebb772a05060876390ac037a3fb33d9f953abe
 function defaultHashFor(user){
   if (!user) return '#/login';
   return user.role === 'patient' ? '#/overview' : '#/dashboard';
 }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> a0ebb772a05060876390ac037a3fb33d9f953abe
 export function router(){
   
   //main container where each page with show its html 
@@ -78,15 +59,6 @@ export function router(){
     if (location.hash !== hash) location.hash = hash;
   }
 
-<<<<<<< HEAD
-=======
-  // Patients cannot access staff views
-  // role based access control 
-   
-
-        //heading them back to their overview page 
-       
->>>>>>> a0ebb772a05060876390ac037a3fb33d9f953abe
   // Patients cannot access staff/admin views
   if (
     user?.role === 'patient' &&
@@ -96,23 +68,13 @@ export function router(){
      hash === '#/settings' ||
      hash === '#/emails')
   ){
-<<<<<<< HEAD
-=======
-
->>>>>>> a0ebb772a05060876390ac037a3fb33d9f953abe
     hash = '#/overview';
     if (location.hash !== hash) location.hash = hash;
   }
 
-<<<<<<< HEAD
    // admin + clinic staff only routes
   const restricted = new Set(['#/emails']);
   if (user && restricted.has(hash) && (user.role !== 'admin' && user.role !== 'staff')) {
-=======
-  // Admin only routes
-  const adminOnly = new Set(['#/emails']);
-  if (user && adminOnly.has(hash) && user.role !== 'admin') {
->>>>>>> a0ebb772a05060876390ac037a3fb33d9f953abe
     hash = defaultHashFor(user);
     if (location.hash !== hash) location.hash = hash;
   }
