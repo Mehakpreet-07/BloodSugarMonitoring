@@ -17,7 +17,7 @@ const { validateRequiredFields } = require('../utils/helpers');
  */
 async function register(req, res) {
   try {
-    const { name, email, password, healthCareNumber, dateOfBirth, phone } = req.body;
+    const { name, email, password, healthCareNumber, dateOfBirth, phone, profileImage } = req.body;
 
     // Validate required fields
     const validation = validateRequiredFields(req.body, ['name', 'email', 'password']);
@@ -48,14 +48,17 @@ async function register(req, res) {
     const passwordHash = await hashPassword(password);
 
     // Create patient
-    const patient = await db.insert('patients', {
+     const patient = await db.insert('patients', {
       fullName: name,
-      email: email.toLowerCase(),
+      email,
       passwordHash,
-      healthCareNumber: healthCareNumber || null,
+      healthCareNumber,
       dateOfBirth: dateOfBirth || null,
       phone: phone || null,
+      assignedSpecialistId: defaultSpec ? defaultSpec.id : null,
       preferredUnit: 'mg/dL',
+      // FIX: Use provided image OR auto-generate if empty
+      profileImage: profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
       registrationDate: new Date().toISOString()
     });
 

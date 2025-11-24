@@ -98,7 +98,7 @@ class Database {
     const dataStr = JSON.stringify(this.collections[name], null, 2);
     
     let attempts = 0;
-    const maxAttempts = 5;
+    const maxAttempts = 10;
 
     while (attempts < maxAttempts) {
       try {
@@ -111,11 +111,10 @@ class Database {
         if (err.code === 'EPERM' || err.code === 'EBUSY') {
           if (attempts >= maxAttempts) {
             console.error(`Failed to save ${name} after ${maxAttempts} attempts:`, err.message);
-            // Try to clean up temp file
             try { await unlink(tempPath); } catch (_) {}
             throw err;
           }
-          await sleep(50 * attempts); // Exponential backoff (50ms, 100ms, 150ms...)
+          await sleep(100 * attempts); // Exponential backoff
         } else {
           throw err; // Throw other errors immediately
         }
@@ -201,3 +200,70 @@ class Database {
             updatedAt: new Date().toISOString()
           };
           updated++;
+        }
+      }
+
+      return updated;
+    });
+  }
+
+  async updateById(collectionName, id, update) {
+    return this.update(collectionName, { id }, update);
+  }
+
+  async delete(collectionName, query) {
+    return this.queueWrite(collectionName, () => {
+      const collection = this.collections[collectionName];
+      const initialLength = collection.length;
+
+      this.collections[collectionName] = collection.filter(doc => {
+        return !Object.entries(query).every(([key, value]) => 
+          doc[key] === value
+        );
+      });
+
+      return initialLength - this.collections[collectionName].length;
+    });
+  }
+
+  async deleteById(collectionName, id) {
+    return this.delete(collectionName, { id });
+  }
+
+  async aggregate(collectionName, pipeline) {
+    let results = [...this.collections[collectionName]];
+
+    for (const stage of pipeline) {
+      if (stage.$match) {
+        results = results.filter(doc => {
+          return Object.entries(stage.$match).every(([key, value]) => {
+            if (typeof value === 'object' && value !== null) {
+              return doc[key] === value; 
+            }
+            return doc[key] === value;
+          });
+        });
+      }
+      if (stage.$sort) {
+        const [field, order] = Object.entries(stage.$sort)[0];
+        results.sort((a, b) => {
+          const aVal = a[field];
+          const bVal = b[field];
+          if (aVal < bVal) return order === 1 ? -1 : 1;
+          if (aVal > bVal) return order === 1 ? 1 : -1;
+          return 0;
+        });
+      }
+      if (stage.$limit) {
+        results = results.slice(0, stage.$limit);
+      }
+      if (stage.$skip) {
+        results = results.slice(stage.$skip);
+      }
+    }
+    return results;
+  }
+}
+
+const db = new Database();
+module.exports = { db };

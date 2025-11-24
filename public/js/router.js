@@ -1,4 +1,3 @@
-// public/js/router.js
 import { renderDashboard }  from './views/dashboard.js';
 import { renderPatients }   from './views/patients.js';
 import { renderAlerts }     from './views/alerts.js';
@@ -8,6 +7,7 @@ import { renderOverview }   from './views/overview.js';
 import { renderLogin }      from './views/login.js';
 import { renderRegister }   from './views/register.js';
 import { renderEmailTemplates } from './views/emailTemplates.js';
+import { renderAdmin }      from './views/admin.js'; // <--- NEW IMPORT
 import { store }            from './state/store.js';
 
 const routes = {
@@ -19,7 +19,8 @@ const routes = {
   '#/settings' : renderSettings,
   '#/profile'  : renderProfile,
   '#/overview' : renderOverview,
-  '#/emails'   : renderEmailTemplates
+  '#/emails'   : renderEmailTemplates,
+  '#/admin'    : renderAdmin // <--- NEW ROUTE
 };
 
 function defaultHashFor(user){
@@ -34,37 +35,21 @@ export function router(){
 
   const publicRoutes = new Set(['#/login', '#/register']);
 
-  // Not logged in -> force to login
   if (!user && !publicRoutes.has(hash)) {
     hash = '#/login';
     if (location.hash !== hash) location.hash = hash;
   }
 
-  // Security: Restrict Patient Access
-  // FIX: Removed '#/settings' from this list so patients can change units
-  if (
-    user?.role === 'patient' &&
-    (hash === '#/patients' ||
-     hash === '#/alerts'   ||
-     hash === '#/dashboard'||
-     hash === '#/emails')
-  ){
-    hash = '#/overview';
-    if (location.hash !== hash) location.hash = hash;
-  }
-
-  // Security: Restrict Non-Admins from Email Templates
-  const restricted = new Set(['#/emails']);
-  if (user && restricted.has(hash) && (user.role !== 'admin' && user.role !== 'staff')) {
-    hash = defaultHashFor(user);
-    if (location.hash !== hash) location.hash = hash;
+  // Security Check for Admin Route
+  if (hash === '#/admin' && user?.role !== 'admin') {
+      hash = defaultHashFor(user);
+      if (location.hash !== hash) location.hash = hash;
   }
 
   // Render page
   page.innerHTML = '';
   (routes[hash] || renderLogin)(page);
 
-  // Update Header Breadcrumbs
   const map = {
     '#/login'    : 'Sign in',
     '#/register' : 'Register',
@@ -74,7 +59,8 @@ export function router(){
     '#/settings' : 'Settings',
     '#/profile'  : 'Profile',
     '#/overview' : 'Overview',
-    '#/emails'   : 'Email templates'
+    '#/emails'   : 'Email templates',
+    '#/admin'    : 'User Management'
   };
 
   const crumbs = document.querySelector('#head .crumbs');

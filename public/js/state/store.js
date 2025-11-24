@@ -1,37 +1,45 @@
-// BloodSugarMonitoring/public/js/state/store.js
-// me : Get current authenticated user
-// login(email, password) : Authenticate user
-// logout() : End user session
+// public/js/state/store.js
 import { me, login as apiLogin, logout as apiLogout } from '../api/auth.js';
-// Centralized application state store
+
 export const store = {
-  user: null,                 // { id, role, name, email, ... }
+  user: null,
+  csrfToken: null, // New: Store the security token
   filters: { patient:'', category:'' },
-// Update state with partial data and notify listeners                      
+
   set(partial){
     Object.assign(this, partial);
     document.dispatchEvent(new Event('state:change'));
   },
-//restores the user session
+
   async hydrate(){
     try{
-      const { user } = await me();
-      this.user = user || null;
-    }catch{ this.user = null; }
+      const data = await me(); // returns { user, csrfToken }
+      this.user = data.user || null;
+      this.csrfToken = data.csrfToken || null; // Save token on load
+    }catch{ 
+      this.user = null; 
+      this.csrfToken = null;
+    }
     document.dispatchEvent(new Event('state:change'));
   },
-// Authenticate user and update state
+
   async login(email, password){
     const res = await apiLogin(email, password);
     if (!res.ok) return res;
-    this.user = res.user; document.dispatchEvent(new CustomEvent('auth:changed', { detail:this.user }));
+    
+    this.user = res.user; 
+    this.csrfToken = res.csrfToken; // Save token on login
+    
+    document.dispatchEvent(new CustomEvent('auth:changed', { detail:this.user }));
     document.dispatchEvent(new Event('state:change'));
     return { ok:true };
   },
-// End user session and update state
+
   async logout(){
     await apiLogout();
-    this.user = null; document.dispatchEvent(new CustomEvent('auth:changed', { detail:null }));
+    this.user = null; 
+    this.csrfToken = null;
+    document.dispatchEvent(new CustomEvent('auth:changed', { detail:null }));
     document.dispatchEvent(new Event('state:change'));
   }
 };

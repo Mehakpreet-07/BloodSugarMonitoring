@@ -1,115 +1,80 @@
+// server/routes/readings.js
 const { db } = require('../storage/db');
 const { toMgdL, fromMgdL, validateBloodSugarValue, isValidUnit, formatTimestamp } = require('../utils/helpers');
 const { categorizeReading, shouldTriggerAlert } = require('../utils/ai');
 const { sendAbnormalReadingAlertEmails } = require('../utils/notifications');
 
+// GET Readings
 async function getReadings(req, res) {
   try {
+    // SRS 3.1.3.a: Staff cannot view medical data
+    if (req.user.role === 'staff') {
+        return res.status(403).json({ ok: false, error: 'Staff cannot view medical data' });
+    }
+
     const patientId = req.user.role === 'patient' ? req.user.patientId : parseInt(req.query.patientId);
     if (!patientId) return res.status(400).json({ ok: false, error: 'Patient ID required' });
-    if (req.user.role === 'patient' && patientId !== req.user.patientId) return res.status(403).json({ ok: false, error: 'Access forbidden' });
+    
+    if (req.user.role === 'patient' && patientId !== req.user.patientId) {
+        return res.status(403).json({ ok: false, error: 'Access forbidden' });
+    }
 
-    const { startDate, endDate, category, limit = 1000, offset = 0 } = req.query;
     const query = { patientId };
-    if (category) query.category = category;
-
     let readings = await db.find('readings', query);
-
-    if (startDate || endDate) {
-      const start = startDate ? new Date(startDate).getTime() : 0;
-      const end = endDate ? new Date(endDate).getTime() : Date.now();
-      readings = readings.filter(r => {
-        const timestamp = new Date(r.recordedAt).getTime();
-        return timestamp >= start && timestamp <= end;
-      });
-    }
-
     readings.sort((a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime());
-    const total = readings.length;
-    readings = readings.slice(parseInt(offset), parseInt(offset) + parseInt(limit));
-
-    for (const reading of readings) {
-      reading.foodActivityLogs = await db.find('foodActivityLogs', { readingId: reading.id });
-    }
 
     const patient = await db.findById('patients', patientId);
-    const preferredUnit = patient?.preferredUnit || 'mg/dL';
+    const unit = patient?.preferredUnit || 'mg/dL';
 
-    const convertedReadings = readings.map(r => ({
-      ...r,
-      value: fromMgdL(r.valueMgPerdL, preferredUnit),
-      unit: preferredUnit
+    const converted = readings.map(r => ({
+        ...r,
+        value: fromMgdL(r.valueMgPerdL, unit),
+        unit
     }));
 
-    return res.status(200).json({ ok: true, readings: convertedReadings, total, limit: parseInt(limit), offset: parseInt(offset) });
+    res.json({ ok: true, readings: converted });
   } catch (err) {
-    console.error('Get readings error:', err);
-    return res.status(500).json({ ok: false, error: 'Failed to get readings' });
+    res.status(500).json({ ok: false, error: err.message });
   }
 }
 
+// CREATE Reading
 async function createReading(req, res) {
   try {
-    const { value, unit, notes, foodActivity, recordedAt } = req.body;
+    const { value, unit, foodIntake, eventActivity, symptoms, recordedAt } = req.body;
     const patientId = req.user.role === 'patient' ? req.user.patientId : parseInt(req.body.patientId);
 
-    if (!patientId) return res.status(400).json({ ok: false, error: 'Patient ID required' });
-    if (req.user.role === 'patient' && patientId !== req.user.patientId) return res.status(403).json({ ok: false, error: 'Access forbidden' });
-    if (value === undefined || value === null) return res.status(400).json({ ok: false, error: 'Value is required' });
-    if (!isValidUnit(unit)) return res.status(400).json({ ok: false, error: 'Invalid unit' });
+    if (!value) return res.status(400).json({ ok: false, error: 'Value required' });
 
-    const validation = validateBloodSugarValue(parseFloat(value), unit);
-    if (!validation.valid) return res.status(400).json({ ok: false, error: validation.error });
-
-    const valueMgPerdL = toMgdL(parseFloat(value), unit);
+    const valMg = toMgdL(parseFloat(value), unit);
     const thresholds = await db.findOne('thresholdSettings', { active: true });
-    if (!thresholds) return res.status(500).json({ ok: false, error: 'Threshold settings not configured' });
-
-    const category = categorizeReading(valueMgPerdL, thresholds);
+    const category = categorizeReading(valMg, thresholds);
 
     const reading = await db.insert('readings', {
       patientId,
-      valueMgPerdL,
+      valueMgPerdL: valMg,
       unitEntered: unit,
       category,
-      notes: notes || null,
-      recordedAt: formatTimestamp(recordedAt || new Date())
+      foodIntake: foodIntake || '',
+      eventActivity: eventActivity || '',
+      symptoms: symptoms || '',
+      recordedAt: formatTimestamp(recordedAt)
     });
 
-    if (foodActivity && Array.isArray(foodActivity) && foodActivity.length > 0) {
-      for (const activity of foodActivity) {
-        if (activity.description) {
-          await db.insert('foodActivityLogs', {
-            readingId: reading.id,
-            description: activity.description,
-            loggedAt: formatTimestamp(activity.time || recordedAt || new Date())
-          });
-        }
-      }
-    }
-
-    // Alert Logic Check
+    // Alert Logic
     const patientReadings = await db.find('readings', { patientId });
     if (shouldTriggerAlert(patientReadings, thresholds)) {
-      const existingAlert = await db.findOne('alerts', { patientId, status: 'Pending' });
-      
-      if (!existingAlert) {
-          const patient = await db.findById('patients', patientId);
-          let specialist = null;
-          if (patient && patient.specialistId) {
-            specialist = await db.findById('specialists', patient.specialistId);
-          }
-
-          const alert = await db.insert('alerts', {
-            patientId,
-            specialistId: specialist ? specialist.id : null,
-            triggeredAt: new Date().toISOString(),
-            reason: 'More than 3 abnormal readings in the past 7 days',
-            status: 'Pending'
-          });
-
-          await sendAbnormalReadingAlertEmails({ patient, specialist, reading, alert, thresholds });
-      }
+       const existing = await db.findOne('alerts', { patientId, status: 'Pending' });
+       if (!existing) {
+           const patient = await db.findById('patients', patientId);
+           await db.insert('alerts', {
+               patientId,
+               specialistId: patient.assignedSpecialistId || null,
+               triggeredAt: new Date().toISOString(),
+               reason: '>3 Abnormal readings in 7 days',
+               status: 'Pending'
+           });
+       }
     }
 
     await db.insert('auditLogs', {
@@ -122,55 +87,41 @@ async function createReading(req, res) {
       createdAt: new Date().toISOString()
     });
 
-    reading.foodActivityLogs = await db.find('foodActivityLogs', { readingId: reading.id });
-
-    return res.status(201).json({
-      ok: true,
-      reading: { ...reading, value: fromMgdL(reading.valueMgPerdL, unit), unit }
-    });
+    res.json({ ok: true, reading });
   } catch (err) {
-    console.error('Create reading error:', err);
-    return res.status(500).json({ ok: false, error: 'Failed to create reading' });
+    res.status(500).json({ ok: false, error: err.message });
   }
 }
 
+// UPDATE Reading (Fixed to handle new fields)
 async function updateReading(req, res) {
   try {
     const readingId = parseInt(req.params.id);
-    const { value, unit, notes, foodActivity } = req.body;
+    const { value, unit, foodIntake, eventActivity, symptoms } = req.body;
 
     const reading = await db.findById('readings', readingId);
-    if (!reading) return res.status(404).json({ ok: false, error: 'Reading not found' });
-    if (req.user.role === 'patient' && reading.patientId !== req.user.patientId) return res.status(403).json({ ok: false, error: 'Access forbidden' });
+    if (!reading) return res.status(404).json({ ok: false, error: 'Not found' });
+    
+    if (req.user.role === 'patient' && reading.patientId !== req.user.patientId) {
+      return res.status(403).json({ ok: false, error: 'Forbidden' });
+    }
 
     const updates = {};
     if (value !== undefined && unit !== undefined) {
-      const validation = validateBloodSugarValue(parseFloat(value), unit);
-      if (!validation.valid) return res.status(400).json({ ok: false, error: validation.error });
-
-      const valueMgPerdL = toMgdL(parseFloat(value), unit);
-      updates.valueMgPerdL = valueMgPerdL;
+      const valMg = toMgdL(parseFloat(value), unit);
+      updates.valueMgPerdL = valMg;
       updates.unitEntered = unit;
       const thresholds = await db.findOne('thresholdSettings', { active: true });
-      updates.category = categorizeReading(valueMgPerdL, thresholds);
+      updates.category = categorizeReading(valMg, thresholds);
     }
-    if (notes !== undefined) updates.notes = notes;
+    
+    // Update specific fields (food, event, symptom)
+    if (foodIntake !== undefined) updates.foodIntake = foodIntake;
+    if (eventActivity !== undefined) updates.eventActivity = eventActivity;
+    if (symptoms !== undefined) updates.symptoms = symptoms;
 
-    if (Object.keys(updates).length > 0) await db.updateById('readings', readingId, updates);
-
-    if (foodActivity !== undefined) {
-      await db.delete('foodActivityLogs', { readingId });
-      if (Array.isArray(foodActivity)) {
-        for (const activity of foodActivity) {
-          if (activity.description) {
-            await db.insert('foodActivityLogs', {
-              readingId,
-              description: activity.description,
-              loggedAt: formatTimestamp(activity.time || new Date())
-            });
-          }
-        }
-      }
+    if (Object.keys(updates).length > 0) {
+        await db.updateById('readings', readingId, updates);
     }
 
     await db.insert('auditLogs', {
@@ -183,46 +134,50 @@ async function updateReading(req, res) {
       createdAt: new Date().toISOString()
     });
 
-    const updatedReading = await db.findById('readings', readingId);
-    updatedReading.foodActivityLogs = await db.find('foodActivityLogs', { readingId });
-    const patient = await db.findById('patients', updatedReading.patientId);
-    const preferredUnit = patient?.preferredUnit || 'mg/dL';
-
-    return res.status(200).json({
-      ok: true,
-      reading: { ...updatedReading, value: fromMgdL(updatedReading.valueMgPerdL, preferredUnit), unit: preferredUnit }
+    const updated = await db.findById('readings', readingId);
+    
+    // Convert for response
+    const patient = await db.findById('patients', updated.patientId);
+    const prefUnit = patient?.preferredUnit || 'mg/dL';
+    
+    res.json({ 
+        ok: true, 
+        reading: { 
+            ...updated, 
+            value: fromMgdL(updated.valueMgPerdL, prefUnit), 
+            unit: prefUnit 
+        } 
     });
   } catch (err) {
-    console.error('Update reading error:', err);
-    return res.status(500).json({ ok: false, error: 'Failed to update reading' });
+    res.status(500).json({ ok: false, error: err.message });
   }
 }
 
+// DELETE Reading
 async function deleteReading(req, res) {
-  try {
-    const readingId = parseInt(req.params.id);
-    const reading = await db.findById('readings', readingId);
-    if (!reading) return res.status(404).json({ ok: false, error: 'Reading not found' });
-    if (req.user.role === 'patient' && reading.patientId !== req.user.patientId) return res.status(403).json({ ok: false, error: 'Access forbidden' });
+    try {
+        const id = parseInt(req.params.id);
+        const r = await db.findById('readings', id);
+        if (!r) return res.status(404).json({error:'Not found'});
+        
+        if (req.user.role === 'patient' && r.patientId !== req.user.patientId) {
+            return res.status(403).json({error:'Forbidden'});
+        }
+        
+        await db.deleteById('readings', id);
+        
+        await db.insert('auditLogs', {
+            actorType: req.user.role,
+            actorId: req.user.id,
+            actionType: 'reading_deleted',
+            resourceType: 'Reading',
+            resourceId: id,
+            details: 'Deleted reading',
+            createdAt: new Date().toISOString()
+        });
 
-    await db.delete('foodActivityLogs', { readingId });
-    await db.deleteById('readings', readingId);
-
-    await db.insert('auditLogs', {
-      actorType: req.user.role,
-      actorId: req.user.id,
-      actionType: 'reading_deleted',
-      resourceType: 'Reading',
-      resourceId: readingId,
-      details: `Deleted reading ${readingId}`,
-      createdAt: new Date().toISOString()
-    });
-
-    return res.status(200).json({ ok: true, message: 'Reading deleted successfully' });
-  } catch (err) {
-    console.error('Delete reading error:', err);
-    return res.status(500).json({ ok: false, error: 'Failed to delete reading' });
-  }
+        res.json({ok:true});
+    } catch (e) { res.status(500).json({error:e.message}); }
 }
 
 module.exports = { getReadings, createReading, updateReading, deleteReading };

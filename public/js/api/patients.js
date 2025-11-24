@@ -2,6 +2,7 @@
 import { USE_MOCKS } from '../config.js';
 const base = USE_MOCKS ? 'mock' : '/api';
 
+// Function 1: Get the list of all patients
 export async function listPatients(search=''){
   const url = USE_MOCKS ? `${base}/patients.json`
                         : `${base}/patients?search=${encodeURIComponent(search)}`;
@@ -16,6 +17,7 @@ export async function listPatients(search=''){
   return data;
 }
 
+// Function 2: Get readings for a specific patient (THIS WAS MISSING)
 export async function getPatientReadings(id, params={}){
   if (USE_MOCKS){
     const r = await fetch(`${base}/readings.json`);
@@ -29,12 +31,11 @@ export async function getPatientReadings(id, params={}){
   const json = await r.json();
   const raw = json.readings || [];
 
-  // FIX: Map Backend format -> Frontend format
-  // We use 'value' (which the backend guarantees) as a fallback for 'valueMgPerdL'
+  // Map Backend format -> Frontend format
   return raw.map(reading => ({
     ...reading,
     ts: reading.recordedAt ? new Date(reading.recordedAt).getTime() : Date.now(),
-    valueMgdl: reading.valueMgPerdL || reading.value || 0, // Robust fallback
+    valueMgdl: reading.valueMgPerdL || reading.value || 0, 
     unit: 'mg/dL' 
   }));
 }

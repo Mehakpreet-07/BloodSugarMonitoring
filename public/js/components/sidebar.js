@@ -28,10 +28,11 @@ export function mountSidebar(node, onNav){
       ];
     }
 
-    // Admin
+    // Admin - ADDED USER MANAGEMENT
     if (role === 'admin') {
       return [
         { hash:'#/dashboard', label:'Dashboard' },
+        { hash:'#/admin',     label:'User Management' }, // <--- NEW LINK
         { hash:'#/patients',  label:'Patients' },
         { hash:'#/settings',  label:'Settings' },
         { hash:'#/emails',    label:'Email templates' },
@@ -39,7 +40,7 @@ export function mountSidebar(node, onNav){
       ];
     }
 
-    // Specialist (Doctor) - Removed 'Settings' as requested
+    // Specialist (Doctor)
     return [
       { hash:'#/dashboard', label:'Dashboard' },
       { hash:'#/patients',  label:'Patients' },

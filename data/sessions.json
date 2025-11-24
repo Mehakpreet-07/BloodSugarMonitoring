@@ -1,79 +1,24 @@
 [
   {
-    "sessionId": "09c01b71fe226ed7dc8f930d02c41eae8b53efd8b6f722f35d61697552d18cc2",
+    "sessionId": "b5471e130510213f3545df3b52649991362e5817b9d74bada71593edd3059198",
     "userId": 1,
     "role": "patient",
-    "csrfToken": "819ffe0e19b4d35d5b03919c42999dc8",
+    "csrfToken": "d30742d921ce50fc116b935506880beb",
     "active": false,
-    "expiresAt": "2025-11-19T07:14:39.860Z",
-    "createdAt": "2025-11-19T06:42:40.973Z",
+    "expiresAt": "2025-11-24T09:59:36.660Z",
+    "createdAt": "2025-11-24T09:13:29.337Z",
     "id": 1,
-    "updatedAt": "2025-11-19T06:44:42.321Z"
+    "updatedAt": "2025-11-24T09:29:43.998Z"
   },
   {
-    "sessionId": "86e96088c74c679d2aa209023adffb8b4cb13e675278c22aa2eac28dcb93fa63",
+    "sessionId": "0383e56ea5210fdbc449da9a5b0e1116dbaeed45a876a4a3ce20ab355b35905b",
     "userId": 1,
-    "role": "specialist",
-    "csrfToken": "bbec90d4b0dd4ec38bd385b337795173",
+    "role": "admin",
+    "csrfToken": "e791ef23b90387da6a7c53ec06d42820",
     "active": true,
-    "expiresAt": "2025-11-19T07:16:39.395Z",
-    "createdAt": "2025-11-19T06:45:00.698Z",
+    "expiresAt": "2025-11-24T09:59:55.318Z",
+    "createdAt": "2025-11-24T09:29:55.318Z",
     "id": 2,
-    "updatedAt": "2025-11-19T06:46:39.396Z"
-  },
-  {
-    "sessionId": "f728ecbdd23282946d1750fe564a9de3eb561285eeac4e2442e86cb232acd54d",
-    "userId": 1,
-    "role": "specialist",
-    "csrfToken": "9273487e627515d09ac54bc970b31ae9",
-    "active": true,
-    "expiresAt": "2025-11-19T07:20:22.495Z",
-    "createdAt": "2025-11-19T06:46:41.802Z",
-    "id": 3,
-    "updatedAt": "2025-11-19T06:50:22.496Z"
-  },
-  {
-    "sessionId": "2461373a6aa1963dc2926b5116bb74ca5abfb4c7768e5cb91e0ae8f0f073bf13",
-    "userId": 1,
-    "role": "patient",
-    "csrfToken": "c635df14503d0caadf4102fc4cda8173",
-    "active": false,
-    "expiresAt": "2025-11-19T07:28:24.853Z",
-    "createdAt": "2025-11-19T06:52:25.093Z",
-    "id": 4,
-    "updatedAt": "2025-11-19T06:58:28.257Z"
-  },
-  {
-    "sessionId": "2ec04df68f188bb07c517dba7a8b3846c67670a6aa56d5b83e932d65ecf4e22e",
-    "userId": 1,
-    "role": "patient",
-    "csrfToken": "158da936592b1437855ab24e32cbc1ca",
-    "active": true,
-    "expiresAt": "2025-11-19T07:57:51.966Z",
-    "createdAt": "2025-11-19T06:58:38.072Z",
-    "id": 5,
-    "updatedAt": "2025-11-19T07:27:51.966Z"
-  },
-  {
-    "sessionId": "7b7801c45b92e088ee1b233454671568fb86c10b38eb3289b096c9a7a808bb4c",
-    "userId": 1,
-    "role": "patient",
-    "csrfToken": "0258db044a54198e822c9a834532609e",
-    "active": false,
-    "expiresAt": "2025-11-19T08:04:05.597Z",
-    "createdAt": "2025-11-19T07:29:22.822Z",
-    "id": 6,
-    "updatedAt": "2025-11-19T07:34:06.874Z"
-  },
-  {
-    "sessionId": "878937e4ab0f4cb7be814a0c702f4dacdcb7cc1a2ad23d0dabd66b0b6e72215d",
-    "userId": 1,
-    "role": "patient",
-    "csrfToken": "2a19783bfea1e9271266c9609a6e0419",
-    "active": true,
-    "expiresAt": "2025-11-19T08:04:59.779Z",
-    "createdAt": "2025-11-19T07:34:09.610Z",
-    "id": 7,
-    "updatedAt": "2025-11-19T07:34:59.790Z"
+    "updatedAt": "2025-11-24T09:29:55.318Z"
   }
 ]

@@ -3,99 +3,68 @@ import { store } from '../state/store.js';
 import { getWeather } from '../api/weather.js';
 import { drawLine } from '../components/chart.js';
 import { rowsHtml } from '../components/table.js';
-import { DAY, now, fmtDate } from '../utils/dates.js';
 import { getKpis } from '../api/kpis.js';
 import { listAlerts } from '../api/alerts.js';
-import { listPatients, getPatientReadings } from '../api/patients.js';
+import { listPatients } from '../api/patients.js';
 import { getThresholds } from '../api/settings.js';
 import { toDisplay, categorizeByThresholds } from '../utils/units.js';
-// this function will render the dashboard page for doctor, admin, staff or patient
+
+// Helper to format dates
+function formatDate(ts) {
+  if (!ts) return '-';
+  return new Date(ts).toLocaleString('en-US', {
+    month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+  });
+}
+
 export async function renderDashboard(root){
   const role = store.user?.role || 'guest';
-  const weatherCard = `
-    <section class="panel" id="weatherPanel">
-      <h2>Today’s Weather</h2>
-      <div id="weatherInfo" class="muted">Loading current weather…</div>
-    </section>
-  `;
-// if the user is a patient , show their own readings trend and weather info
+  
+  // --- 1. PATIENT VIEW (Redirect to Overview) ---
   if (role === 'patient') {
-    root.innerHTML = `
-      ${weatherCard}
-      <section class="panel" style="margin-top:1rem">
-        <h2>My Recent Readings</h2>
-        <canvas id="trend" aria-label="My blood sugar trend" style="height:220px"></canvas>
-        <details class="muted" style="margin-top:.5rem">
-          <summary>Show data table</summary>
-          <table class="list" id="dataTable"></table>
-        </details>
-      </section>
-    `;
-// to easily get elements by their id within the root: means the patient dashboard page
-    try {
-      const myId = store.user?.patientId;
-      const [thr, myReadings, ptsList] = await Promise.all([
-        getThresholds(),
-        getPatientReadings(myId),
-        listPatients()
-      ]);
-      const me = ptsList.find(p => String(p.id) === String(myId)) || { name:'Me' };
-// it helps to draw the trend chart and data table for the patient
-      const last7 = myReadings.slice(-7);
-      const series = last7.map(r => {
-        const cat = categorizeByThresholds(r.valueMgdl, thr);
-        return { x:r.ts, y:r.valueMgdl, cat };
-      });
-      drawLine('trend', series.length ? series : [{ x: Date.now(), y: 0, cat: 'Normal' }]);
-// preparing the data table for the patient
-      const head = `<thead><tr><th>Date</th><th>${me.name}</th><th>Value</th><th>Category</th></tr></thead>`;
-      const body = rowsHtml(last7.map(r=>{
-        const cat = categorizeByThresholds(r.valueMgdl, thr);
-        return [fmtDate(r.ts), me.name, toDisplay(r.valueMgdl, thr.unit), { html: `<span class="pill p-${cat}">${cat}</span>` }];
-      }));
-      document.getElementById('dataTable').innerHTML = head + `<tbody>${body}</tbody>`;
-    } catch {
-      document.getElementById('dataTable').innerHTML = '<tbody><tr><td>Unable to load your data.</td></tr></tbody>';
-    }
-// this is for the weather info for patient dashboard
-    getWeather().then(({city,desc,temp,hum,icon})=>{
-      document.getElementById('weatherInfo').innerHTML =
-        `<div class="row"><img src="https://openweathermap.org/img/wn/${icon}.png" alt="${desc}" width="48" height="48">
-         <div><strong>${city}</strong><br>${desc} • ${temp}°C${hum?` • ${hum}% humidity`:''}</div></div>`;
-    }).catch(()=> document.getElementById('weatherInfo').textContent='Unable to load weather.');
+    location.hash = '#/overview';
     return;
   }
 
-// for doctor , admin or staff , show the dashboard with KPIs , alerts , patients snapshot and weather
+  // --- 2. SPECIALIST / ADMIN / STAFF VIEW ---
   root.innerHTML = `
-    ${weatherCard}
+    <section class="panel" id="weatherPanel">
+      <h2>Today’s Weather</h2>
+      <div id="weatherInfo" class="muted">Loading...</div>
+    </section>
 
     <section class="grid kpis" style="margin-top:1rem" id="kpisRow">
       <div class="panel kpi"><h3>Total Patients</h3><div class="val" id="kpiPatients">—</div><div class="muted">Active panel</div></div>
       <div class="panel kpi"><h3>Open Alerts</h3><div class="val" id="kpiAlerts">—</div><span class="badge b-bad" id="kpiCritical">— critical</span></div>
-      <div class="panel kpi"><h3>Today’s Consults</h3><div class="val" id="kpiConsults">—</div><span class="badge b-warn" id="kpiPending">— pending</span></div>
+      <div class="panel kpi"><h3>Today’s Consults</h3><div class="val" id="kpiConsults">0</div><span class="badge b-warn" id="kpiPending">0 pending</span></div>
     </section>
 
     <section class="grid two" style="margin-top:1rem">
       <div class="panel">
-        <h2 style="margin:0 0 .5rem">Abnormal Readings (Last 7 Days)</h2>
+        <h2 style="margin:0 0 .5rem">Readings (Last 7 Days)</h2>
         <div class="tools">
-          <input id="filterPatient" placeholder="Search patient…">
-          <select id="filterCat"><option value="">All</option><option>Abnormal</option><option>Borderline</option><option>Normal</option></select>
+          <input id="filterPatient" placeholder="Search patient name...">
+          <select id="filterCat">
+            <option value="">All Categories</option>
+            <option value="Abnormal">Abnormal</option>
+            <option value="Borderline">Borderline</option>
+            <option value="Normal">Normal</option>
+          </select>
           <button class="primary" id="applyFilters">Apply</button>
         </div>
-        <canvas id="trend" aria-label="Trend of blood sugar readings"></canvas>
-        <details class="muted" style="margin-top:.5rem">
-          <summary>Show data table</summary>
-          <table class="list" id="dataTable"></table>
-        </details>
+        <canvas id="trend" aria-label="Trend of blood sugar readings" style="height:260px"></canvas>
+        <p id="chartMsg" class="muted" style="display:none; text-align:center; margin-top:1rem">No data found for these filters.</p>
       </div>
 
       <div class="panel" id="alertsPanel">
         <h2 style="margin:0 0 .5rem">Recent Alerts</h2>
-        <table class="list"><thead><tr><th>When</th><th>Patient</th><th>Category</th><th>Note</th></tr></thead>
-        <tbody id="alertsBody"></tbody></table>
-        <div class="tools"><button id="viewAllAlerts">View all alerts</button></div>
+        <div style="overflow-x:auto">
+          <table class="list">
+            <thead><tr><th>When</th><th>Patient</th><th>Note</th></tr></thead>
+            <tbody id="alertsBody"></tbody>
+          </table>
+        </div>
+        <div class="tools"><button id="viewAllAlerts">Refresh Alerts</button></div>
       </div>
     </section>
 
@@ -105,57 +74,121 @@ export async function renderDashboard(root){
         <thead><tr><th>Name</th><th>Last reading</th><th>Status</th><th></th></tr></thead>
         <tbody id="patientsBody"></tbody>
       </table>
-      <div class="tools"><a href="#/patients">Go to Patients</a></div>
+      <div class="tools"><a href="#/patients">View all Patients</a></div>
     </section>
+
+    <div style="margin-top:2rem; padding:1rem; background:#fff3cd; border:1px solid #ffeeba; color:#856404; border-radius:8px; font-size:0.85rem; text-align:center">
+      <strong>Medical Disclaimer:</strong> This system is for informational purposes only and does not constitute medical advice. 
+      Always consult your healthcare provider for diagnosis and treatment.
+    </div>
   `;
 
-// this is for the weather info for doctor , admin or staff dashboard
+  // A. Load Weather
   getWeather().then(({city,desc,temp,hum,icon})=>{
-    document.getElementById('weatherInfo').innerHTML =
-      `<div class="row"><img src="https://openweathermap.org/img/wn/${icon}.png" alt="${desc}" width="48" height="48">
-       <div><strong>${city}</strong><br>${desc} • ${temp}°C${hum?` • ${hum}% humidity`:''}</div></div>`;
-  }).catch(()=> document.getElementById('weatherInfo').textContent='Unable to load weather.');
-// fetching and displaying the KPIs: means total patients , open alerts , critical alerts , todays consults , pending consults
+    const el = document.getElementById('weatherInfo');
+    if(el) el.innerHTML = `<div class="row"><img src="https://openweathermap.org/img/wn/${icon}.png" alt="${desc}" width="48" height="48"><div><strong>${city}</strong><br>${desc} • ${temp}°C${hum?` • ${hum}% humidity`:''}</div></div>`;
+  }).catch(()=>{});
+
+  // B. Load KPIs
   getKpis().then(k => {
     document.getElementById('kpiPatients').textContent = k.patients;
     document.getElementById('kpiAlerts').textContent   = k.alerts;
     document.getElementById('kpiCritical').textContent = `${k.critical} critical`;
-    document.getElementById('kpiConsults').textContent = k.consults;
-    document.getElementById('kpiPending').textContent  = `${k.pending} pending`;
   }).catch(()=>{});
 
-// preparing demo data for trend chart and data table
-  const pts = [
-    {name:'Rahul C.',  x:now()-6*DAY, y:175, cat:'Borderline'},
-    {name:'Rahul C.',  x:now()-5*DAY, y:192, cat:'Abnormal'},
-    {name:'Bhavni R.', x:now()-4*DAY, y:138, cat:'Borderline'},
-    {name:'Bhavni R.', x:now()-3*DAY, y:205, cat:'Abnormal'},
-    {name:'Rahul C.',  x:now()-2*DAY, y:118, cat:'Normal'},
-    {name:'M. Singh',  x:now()-1*DAY, y:210, cat:'Abnormal'},
-    {name:'R. Kaur',   x:now()-0*DAY, y:126, cat:'Normal'},
-  ];
-  drawLine('trend', pts);
-// preparing the data table for trend chart
-  const head = `<thead><tr><th>Date</th><th>Patient</th><th>mg/dL</th><th>Category</th></tr></thead>`;
-  const body = rowsHtml(pts.slice().sort((a,b)=>a.x-b.x).map(r=>[
-    fmtDate(r.x), r.name, r.y, { html: `<span class="pill p-${r.cat}">${r.cat}</span>` }
-  ]));
-  document.getElementById('dataTable').innerHTML = head + `<tbody>${body}</tbody>`;
+  // C. Load Alerts
+  async function loadAlerts() {
+    const alerts = await listAlerts();
+    const tbody = document.getElementById('alertsBody');
+    
+    if (alerts.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="muted">No active alerts</td></tr>';
+        return;
+    }
 
-// this is for the recent alerts table
-  listAlerts().then(alerts=>{
-    document.getElementById('alertsBody').innerHTML = alerts.map(a => `
-      <tr><td>${a.when}</td><td>${a.name}</td><td><span class="pill p-${a.cat}">${a.cat}</span></td><td>${a.note}</td></tr>
+    tbody.innerHTML = alerts.slice(0, 5).map(a => `
+      <tr>
+        <td style="font-size:0.85rem">${formatDate(a.triggeredAt)}</td>
+        <td>${a.patientName || 'Unknown'}</td>
+        <td>${a.reason}</td>
+      </tr>
     `).join('');
-  }).catch(()=>{});
+  }
+  loadAlerts();
+  document.getElementById('viewAllAlerts').onclick = loadAlerts;
 
-// this is for the patients snapshot table
-  listPatients().then(ps=>{
-    document.getElementById('patientsBody').innerHTML = ps.map(p => `
-      <tr><td>${p.name}</td><td>${p.last}</td><td><span class="pill p-${p.cat}">${p.cat}</span></td><td><a href="#/patients">Open chart</a></td></tr>
+  // D. Load Patients Snapshot
+  listPatients().then(ps => {
+    document.getElementById('patientsBody').innerHTML = ps.slice(0, 5).map(p => `
+      <tr>
+        <td>${p.name}</td>
+        <td>${p.last}</td>
+        <td><span class="pill p-${p.cat}">${p.cat}</span></td>
+        <td><a href="#/patients" style="font-size:0.9rem">View</a></td>
+      </tr>
     `).join('');
-  }).catch(()=>{});
+  });
 
-// this is for the filter button to filter the trend chart and data table
-  document.getElementById('applyFilters').onclick = ()=> drawLine('trend', pts);
+  // E. Load Chart Data
+  async function loadChart() {
+    const thr = await getThresholds();
+    const patients = await listPatients();
+    
+    // Fetch readings for top 5 patients
+    const promises = patients.slice(0, 5).map(p => 
+        fetch(`/api/patients/${p.id}/readings`).then(r => r.json()).then(d => {
+            return (d.readings || []).map(r => ({...r, patientName: p.name}));
+        })
+    );
+
+    const results = await Promise.all(promises);
+    let allReadings = results.flat();
+
+    const filterBtn = document.getElementById('applyFilters');
+    
+    filterBtn.onclick = () => {
+        const nameSearch = document.getElementById('filterPatient').value.toLowerCase();
+        const catFilter = document.getElementById('filterCat').value;
+        
+        const getCat = (val) => {
+            if (val <= thr.normalMax) return 'Normal';
+            if (val <= thr.borderlineMax) return 'Borderline';
+            return 'Abnormal';
+        };
+
+        let filtered = allReadings.filter(r => {
+            const cat = getCat(r.valueMgPerdL);
+            const matchesName = !nameSearch || r.patientName.toLowerCase().includes(nameSearch);
+            const matchesCat = !catFilter || cat === catFilter || (catFilter === 'Abnormal' && cat.includes('Abnormal'));
+            const sevenDaysAgo = Date.now() - (7 * 86400000);
+            const ts = new Date(r.recordedAt).getTime();
+            
+            return matchesName && matchesCat && ts > sevenDaysAgo;
+        });
+
+        filtered.sort((a,b) => new Date(a.recordedAt) - new Date(b.recordedAt));
+
+        const cvs = document.getElementById('trend');
+        const msg = document.getElementById('chartMsg');
+        
+        if (filtered.length === 0) {
+            drawLine('trend', []);
+            cvs.style.display = 'none';
+            msg.style.display = 'block';
+        } else {
+            cvs.style.display = 'block';
+            msg.style.display = 'none';
+            const pts = filtered.map(r => ({
+                x: new Date(r.recordedAt).getTime(),
+                y: r.valueMgPerdL,
+                cat: getCat(r.valueMgPerdL)
+            }));
+            drawLine('trend', pts);
+        }
+    };
+
+    filterBtn.click();
+  }
+
+  loadChart();
 }

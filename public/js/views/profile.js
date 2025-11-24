@@ -1,53 +1,67 @@
 import { store } from '../state/store.js';
+import { getTemplates, saveTemplates } from '../api/templates.js';
 
-export function renderProfile(root) {
+export async function renderEmailTemplates(root){
   const user = store.user;
   
-  if (!user) {
-    root.innerHTML = '<p>Please log in.</p>';
+  // FIX: Allow 'staff' role to access this page (SRS 3.1.3.c)
+  if (!user || (user.role !== 'admin' && user.role !== 'staff')) {
+    root.innerHTML = `
+      <section class="panel">
+        <h2>Email templates</h2>
+        <p class="muted">Access Forbidden.</p>
+      </section>
+    `;
     return;
   }
 
+  const templates = await getTemplates();
+
   root.innerHTML = `
-    <section class="panel" style="max-width:600px; margin:0 auto">
-      <h2>My Profile</h2>
-      
-      <div style="display:flex; align-items:center; gap:1rem; margin:1.5rem 0">
-        <div style="width:64px; height:64px; background:#eef2f7; border-radius:50%; border:1px solid #dfe6ee"></div>
-        <div>
-          <h3 style="margin:0">${user.name}</h3>
-          <span class="badge b-ok" style="text-transform:capitalize">${user.role}</span>
-        </div>
-      </div>
+    <section class="panel">
+      <h2>Email templates</h2>
+      <p class="muted" style="margin-top:.4rem">
+        Manage system email content. Placeholders like <code>{{name}}</code> are replaced automatically.
+      </p>
 
-      <form id="profileForm">
-        <div class="grid two" style="grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem">
-          <label style="display:block">
-            <span class="muted" style="font-size:.85rem">Full Name</span>
-            <input class="tools" style="width:100%; margin-top:.25rem" value="${user.name}" readonly disabled>
-          </label>
-          
-          <label style="display:block">
-            <span class="muted" style="font-size:.85rem">Email</span>
-            <input class="tools" style="width:100%; margin-top:.25rem" value="${user.email}" readonly disabled>
-          </label>
+      <form id="tplForm" style="margin-top:1rem; display:flex; flex-direction:column; gap:1rem">
+        ${templates.map(t => `
+          <div class="panel" style="padding:0.9rem 1rem; border:1px solid var(--line)">
+            <h3 style="margin:0 0 .4rem">${t.name}</h3>
+            <label style="display:block; margin-bottom:.4rem">
+              <span class="muted" style="font-size:.85rem">Subject</span>
+              <input type="text" name="subject-${t.id}" value="${t.subject.replace(/"/g, '&quot;')}" style="width:100%;margin-top:.15rem">
+            </label>
+            <label style="display:block">
+              <span class="muted" style="font-size:.85rem">Body</span>
+              <textarea name="body-${t.id}" rows="4" style="width:100%;margin-top:.15rem">${t.body}</textarea>
+            </label>
+          </div>
+        `).join('')}
+        <div class="tools" style="margin-top:.5rem">
+          <button class="primary" type="submit">Save All Changes</button>
+          <span id="msg" class="muted"></span>
         </div>
-
-        <div class="grid two" style="grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem">
-           <label style="display:block">
-            <span class="muted" style="font-size:.85rem">User ID</span>
-            <input class="tools" style="width:100%; margin-top:.25rem" value="${user.id}" readonly disabled>
-          </label>
-           <label style="display:block">
-            <span class="muted" style="font-size:.85rem">Role</span>
-            <input class="tools" style="width:100%; margin-top:.25rem" value="${user.role}" readonly disabled>
-          </label>
-        </div>
-
-        <p class="muted" style="font-size:0.9rem; margin-top:1.5rem">
-          Note: To update your personal details or password, please contact the clinic administrator.
-        </p>
       </form>
     </section>
   `;
+
+  const form = root.querySelector('#tplForm');
+  const msg  = root.querySelector('#msg');
+
+  form.onsubmit = async e=>{
+    e.preventDefault();
+    msg.textContent = 'Saving...';
+
+    const data = templates.map(t => {
+      return { 
+          ...t, 
+          subject: form[`subject-${t.id}`].value,
+          body: form[`body-${t.id}`].value 
+      };
+    });
+
+    await saveTemplates(data);
+    msg.textContent = 'Saved ✓';
+  };
 }
