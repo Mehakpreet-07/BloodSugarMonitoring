@@ -108,5 +108,27 @@
     "id": 10,
     "createdAt": "2025-11-25T05:58:41.385Z",
     "updatedAt": "2025-11-25T05:58:41.385Z"
+  },
+  {
+    "sessionId": "be66bca605386b4b4f1509ba7840525af7652681761f2c2030407903f16fa982",
+    "userId": 4,
+    "role": "patient",
+    "csrfToken": "18c2f79b17e1d00db69b2a3dbe183ca8",
+    "active": true,
+    "expiresAt": "2025-11-25T06:50:02.649Z",
+    "id": 11,
+    "createdAt": "2025-11-25T06:20:02.649Z",
+    "updatedAt": "2025-11-25T06:20:02.649Z"
+  },
+  {
+    "sessionId": "47e271ad45131e64180bf7f574b345e0c0ee76e8b356e7368177bb65277d32fd",
+    "userId": 1,
+    "role": "admin",
+    "csrfToken": "ed2bd8b5bb94791f55f1e4735e7862a7",
+    "active": true,
+    "expiresAt": "2025-11-25T06:50:10.502Z",
+    "id": 12,
+    "createdAt": "2025-11-25T06:20:10.502Z",
+    "updatedAt": "2025-11-25T06:20:10.502Z"
   }
 ]

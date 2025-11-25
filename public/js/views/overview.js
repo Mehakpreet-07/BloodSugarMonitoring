@@ -126,6 +126,11 @@ export async function renderOverview(root){
       </form>
       <p id="addMsg" class="muted" style="margin-top:.5rem"></p>
     </section>
+
+    <div style="margin-top:2rem; padding:1rem; background:#fff3cd; border:1px solid #ffeeba; color:#856404; border-radius:8px; font-size:0.85rem; text-align:center">
+      <strong>Medical Disclaimer:</strong> This system is for informational purposes only and does not constitute medical advice. 
+      Always consult your healthcare provider for diagnosis and treatment.
+    </div>
   `;
 
   const rangeSel = root.querySelector('#rangeSel');
