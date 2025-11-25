@@ -1,1 +1,17 @@
-[]
+[
+  {
+    "name": "default",
+    "normalMinMg": 70,
+    "normalMaxMg": 140,
+    "borderlineMinMg": 140,
+    "borderlineMaxMg": 180,
+    "abnormalMinMg": 0,
+    "abnormalMaxMg": 70,
+    "abnormalHighMinMg": 180,
+    "abnormalHighMaxMg": 500,
+    "active": true,
+    "createdAt": "2025-11-25T21:45:35.044Z",
+    "updatedAt": "2025-11-25T21:45:35.045Z",
+    "id": 1
+  }
+]

@@ -4,12 +4,12 @@ const { hashPassword } = require('../utils/security');
 
 async function createProfessional(req, res) {
     try {
-        // Destructure ALL fields from the frontend
         const { fullName, email, password, phone, role, workingID, specialization } = req.body;
         
+        // 1. Security Check
         if (req.user.role !== 'admin') return res.status(403).json({error:'Admin only'});
         
-        // Validate
+        // 2. FIX: Validation to prevent crash
         if (!fullName || !email || !password || !workingID) {
             return res.status(400).json({ error: 'Missing required fields (Name, Email, Pwd, WorkingID)' });
         }
@@ -23,7 +23,7 @@ async function createProfessional(req, res) {
             phone, 
             workingID,
             passwordHash,
-            fieldOfSpecialization: specialization || null, // Only used if specialist
+            fieldOfSpecialization: specialization || null,
             profileImage: `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random`
         });
 
@@ -47,6 +47,39 @@ async function getUsers(req, res) {
     ];
     
     res.json({ users: all });
+}
+
+// Feature: Admin Edit User (SRS 3.1.4.a)
+async function updateUser(req, res) {
+    if (req.user.role !== 'admin') return res.status(403).json({error:'Admin only'});
+    const { id, role } = req.params;
+    const updates = req.body;
+
+    let table = '';
+    if (role === 'patient') table = 'patients';
+    else if (role === 'specialist') table = 'specialists';
+    else if (role === 'staff') table = 'staff';
+    else if (role === 'admin') table = 'administrators';
+
+    if (!table) return res.status(400).json({ error: 'Invalid role' });
+
+    // Securely update password if provided
+    if (updates.password) {
+        updates.passwordHash = await hashPassword(updates.password);
+        delete updates.password;
+    }
+
+    await db.updateById(table, parseInt(id), updates);
+
+    await db.insert('auditLogs', {
+        actorType: 'admin',
+        actorId: req.user.id,
+        actionType: 'user_updated',
+        details: `Admin modified user ${id} (${role})`,
+        createdAt: new Date().toISOString()
+    });
+
+    res.json({ ok: true });
 }
 
 async function deleteUser(req, res) {
@@ -74,4 +107,4 @@ async function deleteUser(req, res) {
     res.json({ ok: true });
 }
 
-module.exports = { createProfessional, getUsers, deleteUser };
+module.exports = { createProfessional, getUsers, deleteUser, updateUser };

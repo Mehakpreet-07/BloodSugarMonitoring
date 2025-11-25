@@ -25,17 +25,19 @@ export async function renderAdmin(root) {
             <div class="grid two" style="gap:1.5rem; align-items:start">
                 <section class="panel">
                     <h3>All Users</h3>
+                    <p class="muted" style="font-size:0.8rem; margin-bottom:0.5rem">Click on Name or Email to edit, then click Save.</p>
                     <div style="overflow-x:auto">
                         <table class="list">
-                            <thead><tr><th>Role</th><th>Name</th><th>Email</th><th>Action</th></tr></thead>
+                            <thead><tr><th>Role</th><th>Name</th><th>Email</th><th>Actions</th></tr></thead>
                             <tbody>
                                 ${users.map(u => `
                                     <tr>
                                         <td><span class="badge">${u.role}</span></td>
-                                        <td>${u.fullName}</td>
-                                        <td>${u.email}</td>
+                                        <td contenteditable="true" id="name-${u.role}-${u.id}" style="border-bottom:1px dashed #ccc">${u.fullName}</td>
+                                        <td contenteditable="true" id="email-${u.role}-${u.id}" style="border-bottom:1px dashed #ccc">${u.email}</td>
                                         <td>
-                                            ${u.role !== 'admin' ? `<button class="del-btn" data-role="${u.role}" data-id="${u.id}" style="color:red;border:1px solid red;background:white;border-radius:4px;cursor:pointer;padding:2px 6px">Delete</button>` : ''}
+                                            <button class="save-btn" data-role="${u.role}" data-id="${u.id}" style="font-size:0.8rem; margin-right:5px; padding:2px 6px; cursor:pointer">Save</button>
+                                            ${u.role !== 'admin' ? `<button class="del-btn" data-role="${u.role}" data-id="${u.id}" style="color:red;border:1px solid red;background:white;border-radius:4px;cursor:pointer;padding:2px 6px">Del</button>` : ''}
                                         </td>
                                     </tr>
                                 `).join('')}
@@ -55,10 +57,13 @@ export async function renderAdmin(root) {
                         </label>
                         <input id="newName" placeholder="Full Name" required style="width:100%">
                         <input id="newEmail" type="email" placeholder="Email Address" required style="width:100%">
+                        
                         <input id="newPhone" type="tel" placeholder="Phone (XXX-XXX-XXXX)" maxlength="14" required style="width:100%">
+                        
                         <input id="newWorkId" placeholder="Working ID" required style="width:100%">
                         <input id="newSpec" placeholder="Specialization (Doctors only)" style="width:100%">
                         <input id="newPwd" type="password" placeholder="Password" required style="width:100%">
+                        
                         <button class="primary" type="submit">Create Account</button>
                         <p id="formMsg" class="muted"></p>
                     </form>
@@ -81,19 +86,13 @@ export async function renderAdmin(root) {
         <div id="viewLogs" style="display:none">
             <section class="panel">
                 <h3>System Audit Logs</h3>
+                <div class="tools" style="margin-bottom:1rem">
+                    <input id="logSearch" placeholder="Filter logs (SDD 3.2.9)..." style="width:100%">
+                </div>
                 <div style="overflow-x:auto; max-height:500px; overflow-y:auto">
-                    <table class="list">
+                    <table class="list" id="logTable">
                         <thead><tr><th>Time</th><th>Action</th><th>Details</th><th>Actor</th></tr></thead>
-                        <tbody>
-                            ${logs.map(l => `
-                                <tr>
-                                    <td style="font-size:0.8rem; white-space:nowrap">${new Date(l.createdAt).toLocaleString()}</td>
-                                    <td><strong>${l.actionType}</strong></td>
-                                    <td>${l.details}</td>
-                                    <td><span class="badge">${l.actorType}</span></td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </section>
@@ -102,15 +101,17 @@ export async function renderAdmin(root) {
 
     // --- LOGIC ---
 
+    // 1. Phone Input Masking
     const phoneInput = root.querySelector('#newPhone');
     phoneInput.addEventListener('input', (e) => {
-        let v = e.target.value.replace(/\D/g, ''); 
+        let v = e.target.value.replace(/\D/g, '');
         if (v.length > 10) v = v.slice(0, 10);
         if (v.length > 6) v = v.slice(0,3) + '-' + v.slice(3,6) + '-' + v.slice(6);
         else if (v.length > 3) v = v.slice(0,3) + '-' + v.slice(3);
         e.target.value = v;
     });
 
+    // 2. Tab Switching
     const tabs = { tabUsers: 'viewUsers', tabReports: 'viewReports', tabLogs: 'viewLogs' };
     Object.keys(tabs).forEach(btnId => {
         root.querySelector('#'+btnId).onclick = () => {
@@ -123,6 +124,43 @@ export async function renderAdmin(root) {
         };
     });
 
+    // 3. EDIT USER (SRS 3.1.4.a) - The Missing Feature
+    root.querySelectorAll('.save-btn').forEach(btn => {
+        btn.onclick = async () => {
+            const role = btn.getAttribute('data-role');
+            const id = btn.getAttribute('data-id');
+            
+            // Get values from editable cells
+            const nameCell = document.getElementById(`name-${role}-${id}`);
+            const emailCell = document.getElementById(`email-${role}-${id}`);
+            
+            const newName = nameCell.innerText.trim();
+            const newEmail = emailCell.innerText.trim();
+            
+            // Optimistic UI update (visual feedback)
+            btn.textContent = 'Saving...';
+            
+            try {
+                const res = await fetch(`/api/admin/users/${role}/${id}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json', 'x-csrf-token': store.csrfToken},
+                    body: JSON.stringify({ fullName: newName, email: newEmail })
+                });
+                
+                if(res.ok) {
+                    btn.textContent = 'Saved ✓';
+                    setTimeout(() => btn.textContent = 'Save', 2000);
+                } else {
+                    btn.textContent = 'Error';
+                    alert('Failed to update user.');
+                }
+            } catch (e) {
+                alert('Network error');
+            }
+        };
+    });
+
+    // 4. Delete User
     root.querySelectorAll('.del-btn').forEach(btn => {
         btn.onclick = async () => {
             if(!confirm('Delete user?')) return;
@@ -133,10 +171,19 @@ export async function renderAdmin(root) {
         };
     });
 
+    // 5. Create User
     root.querySelector('#createForm').onsubmit = async (e) => {
         e.preventDefault();
         const msg = root.querySelector('#formMsg');
         msg.textContent = 'Creating...';
+        
+        // Validation
+        const rawPhone = phoneInput.value.replace(/\D/g, '');
+        if (rawPhone.length < 10) {
+            msg.textContent = 'Phone number must be 10 digits.';
+            msg.style.color = 'red';
+            return;
+        }
         
         const payload = {
             role: root.querySelector('#newRole').value,
@@ -156,14 +203,37 @@ export async function renderAdmin(root) {
 
         if(res.ok) {
             msg.textContent = 'Success!';
-            renderAdmin(root);
+            msg.style.color = 'green';
+            setTimeout(() => renderAdmin(root), 1000);
         } else {
             const d = await res.json();
             msg.textContent = d.error || 'Error creating user';
+            msg.style.color = 'red';
         }
     };
 
-    // FIX: Intelligent Report Display
+    // 6. Audit Log Filter
+    const logBody = root.querySelector('#logTable tbody');
+    const renderLogs = (filter='') => {
+        const f = filter.toLowerCase();
+        const filtered = logs.filter(l => 
+            l.actionType.toLowerCase().includes(f) || 
+            l.details.toLowerCase().includes(f) || 
+            l.actorType.toLowerCase().includes(f)
+        );
+        logBody.innerHTML = filtered.map(l => `
+            <tr>
+                <td style="font-size:0.8rem; white-space:nowrap">${new Date(l.createdAt).toLocaleString()}</td>
+                <td><strong>${l.actionType}</strong></td>
+                <td>${l.details}</td>
+                <td><span class="badge">${l.actorType}</span></td>
+            </tr>
+        `).join('') || '<tr><td colspan="4" style="text-align:center">No matching logs</td></tr>';
+    };
+    renderLogs();
+    root.querySelector('#logSearch').addEventListener('input', (e) => renderLogs(e.target.value));
+
+    // 7. Report Logic
     root.querySelector('#repForm').onsubmit = async (e) => {
         e.preventDefault();
         const start = root.querySelector('#repStart').value;
@@ -183,9 +253,8 @@ export async function renderAdmin(root) {
             const rep = d.report;
             const triggers = rep.foodActivityTriggers?.topTriggersHigh || [];
             
-            // Logic: Green if no triggers, Orange if triggers found
             const hasBadPatterns = triggers.length > 0;
-            const boxColor = hasBadPatterns ? '#fff7ed' : '#f0fdf4'; // Orange vs Green
+            const boxColor = hasBadPatterns ? '#fff7ed' : '#f0fdf4';
             const borderColor = hasBadPatterns ? '#ffedd5' : '#bbf7d0';
             const textColor = hasBadPatterns ? '#9a3412' : '#166534';
             const icon = hasBadPatterns ? '⚠️' : '✅';
@@ -198,14 +267,8 @@ export async function renderAdmin(root) {
                     </h4>
                     
                     <div class="grid two" style="gap:2rem; margin-bottom:1.5rem">
-                        <div>
-                            <div class="muted" style="font-size:0.85rem">Active Patients</div>
-                            <div style="font-size:1.8rem; font-weight:bold; color:var(--accent)">${rep.numberOfPatients}</div>
-                        </div>
-                        <div>
-                            <div class="muted" style="font-size:0.85rem">Clinic Avg Glucose</div>
-                            <div style="font-size:1.8rem; font-weight:bold">${rep.avgBloodSugarMg || 0} <span style="font-size:1rem; color:#666">mg/dL</span></div>
-                        </div>
+                        <div><div class="muted">Active Patients</div><div style="font-size:1.8rem; font-weight:bold; color:var(--accent)">${rep.numberOfPatients}</div></div>
+                        <div><div class="muted">Avg Glucose</div><div style="font-size:1.8rem; font-weight:bold">${rep.avgBloodSugarMg || 0}</div></div>
                     </div>
 
                     <div class="grid two" style="gap:1rem; margin-bottom:1.5rem; background:white; padding:1rem; border-radius:8px; border:1px solid #eee">
@@ -216,11 +279,9 @@ export async function renderAdmin(root) {
 
                     <div style="background:${boxColor}; padding:1rem; border-radius:8px; border:1px solid ${borderColor}">
                         <h5 style="margin:0 0 0.5rem 0; color:${textColor}">${icon} ${title}</h5>
-                        ${hasBadPatterns ? `
-                            <ul style="margin:0; padding-left:1.2rem; color:${textColor}">
-                                ${triggers.map(t => `<li><strong>${t.trigger}</strong> (${t.correlation}%)</li>`).join('')}
-                            </ul>
-                        ` : `<p style="margin:0; font-size:0.9rem; color:${textColor}">No adverse patterns detected in this period. Clinic status is stable.</p>`}
+                        <ul style="margin:0; padding-left:1.2rem; color:${textColor}">
+                            ${triggers.length ? triggers.map(t => `<li><strong>${t.trigger}</strong> (${t.correlation}%)</li>`).join('') : '<li>No patterns detected</li>'}
+                        </ul>
                     </div>
                 </div>
             `;

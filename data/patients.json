@@ -7,12 +7,12 @@
     "dateOfBirth": "1985-03-15",
     "preferredUnit": "mg/dL",
     "assignedSpecialistId": 1,
-    "passwordHash": "bd3f1a26ebb1399db54ac444a59ed339707fae9fdecbac895d126eb5f8ceb4af:4206eb6346e80851e20b91c6ba49454a0f7f9cbaf0f20514502076cb125419c80daea108eaf493aeda9f2b99d519d67178dc03d1d9ec6541daff538ea8394142",
+    "passwordHash": "c0ae2c2149ec9f6012e19162ef0a8e45311d8cb2f49d1c5a896a9cd5a68e3a52:ef514e5fb79fd16985e3b987c1d21429bad97247263cbba4e5cbbdbe58f73a4b3a4a4c2efdd84920760333290f8ac2e76a2cdcbd480f9ec9142a6c8cd3e5c80e",
     "profileImage": "https://ui-avatars.com/api/?name=Demo+Patient&background=random",
-    "registrationDate": "2025-11-25T08:49:56.611Z",
+    "registrationDate": "2025-11-25T21:45:33.183Z",
     "id": 1,
-    "createdAt": "2025-11-25T08:49:56.611Z",
-    "updatedAt": "2025-11-25T08:49:56.611Z"
+    "createdAt": "2025-11-25T21:45:33.183Z",
+    "updatedAt": "2025-11-25T21:45:33.183Z"
   },
   {
     "fullName": "Bhavni Rampal",
@@ -22,12 +22,12 @@
     "dateOfBirth": "1990-07-22",
     "preferredUnit": "mmol/L",
     "assignedSpecialistId": 1,
-    "passwordHash": "bd3f1a26ebb1399db54ac444a59ed339707fae9fdecbac895d126eb5f8ceb4af:4206eb6346e80851e20b91c6ba49454a0f7f9cbaf0f20514502076cb125419c80daea108eaf493aeda9f2b99d519d67178dc03d1d9ec6541daff538ea8394142",
+    "passwordHash": "c0ae2c2149ec9f6012e19162ef0a8e45311d8cb2f49d1c5a896a9cd5a68e3a52:ef514e5fb79fd16985e3b987c1d21429bad97247263cbba4e5cbbdbe58f73a4b3a4a4c2efdd84920760333290f8ac2e76a2cdcbd480f9ec9142a6c8cd3e5c80e",
     "profileImage": "https://ui-avatars.com/api/?name=Bhavni+Rampal&background=random",
-    "registrationDate": "2025-11-25T08:49:56.614Z",
+    "registrationDate": "2025-11-25T21:45:33.185Z",
     "id": 2,
-    "createdAt": "2025-11-25T08:49:56.614Z",
-    "updatedAt": "2025-11-25T08:49:56.614Z"
+    "createdAt": "2025-11-25T21:45:33.185Z",
+    "updatedAt": "2025-11-25T21:45:33.185Z"
   },
   {
     "fullName": "Rahul Chauhan",
@@ -37,11 +37,11 @@
     "dateOfBirth": "1988-11-30",
     "preferredUnit": "mg/dL",
     "assignedSpecialistId": 2,
-    "passwordHash": "bd3f1a26ebb1399db54ac444a59ed339707fae9fdecbac895d126eb5f8ceb4af:4206eb6346e80851e20b91c6ba49454a0f7f9cbaf0f20514502076cb125419c80daea108eaf493aeda9f2b99d519d67178dc03d1d9ec6541daff538ea8394142",
+    "passwordHash": "c0ae2c2149ec9f6012e19162ef0a8e45311d8cb2f49d1c5a896a9cd5a68e3a52:ef514e5fb79fd16985e3b987c1d21429bad97247263cbba4e5cbbdbe58f73a4b3a4a4c2efdd84920760333290f8ac2e76a2cdcbd480f9ec9142a6c8cd3e5c80e",
     "profileImage": "https://ui-avatars.com/api/?name=Rahul+Chauhan&background=random",
-    "registrationDate": "2025-11-25T08:49:56.617Z",
+    "registrationDate": "2025-11-25T21:45:33.187Z",
     "id": 3,
-    "createdAt": "2025-11-25T08:49:56.617Z",
-    "updatedAt": "2025-11-25T08:49:56.617Z"
+    "createdAt": "2025-11-25T21:45:33.187Z",
+    "updatedAt": "2025-11-25T21:45:33.187Z"
   }
 ]

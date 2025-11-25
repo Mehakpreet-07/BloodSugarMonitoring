@@ -6,11 +6,12 @@ import { toDisplay, categorizeByThresholds }from '../utils/units.js';
 import { rowsHtml }                         from '../components/table.js';
 import { drawLine }                         from '../components/chart.js';
 
-async function sendFeedback(patientId, comment) {
+// Helper to send feedback (with Link support)
+async function sendFeedback(patientId, comment, link) {
   const r = await fetch('/api/feedback', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-csrf-token': store.csrfToken },
-    body: JSON.stringify({ patientId, comment })
+    body: JSON.stringify({ patientId, comment, link })
   });
   return r.json();
 }
@@ -48,17 +49,19 @@ export async function renderPatients(root){
             <select id="dRange" style="font-size:0.8rem; padding:0.2rem">
                 <option value="7">Last 7 Days</option>
                 <option value="30">Last 30 Days</option>
+                <option value="90">Last 3 Months</option>
                 <option value="all">All Time</option>
             </select>
         </div>
         <canvas id="dChart" style="height:180px"></canvas>
         <div style="overflow-x: auto;">
-            <table class="list"><tbody id="dList"></tbody></table>
+           <table class="list"><tbody id="dList"></tbody></table>
         </div>
         
         <h4 style="margin-top:1.5rem">Give Feedback</h4>
         <form id="fbForm" style="margin-bottom:1rem">
             <textarea id="fbText" rows="3" placeholder="Write advice..." style="width:100%; margin-bottom:.5rem; padding:0.5rem;"></textarea>
+            <input id="fbLink" type="url" placeholder="Attach Link (Optional)" style="width:100%; margin-bottom:.5rem; padding:0.5rem;">
             <button class="primary" type="submit">Send Feedback</button>
             <span id="fbMsg" class="muted" style="margin-left:.5rem;"></span>
         </form>
@@ -66,7 +69,7 @@ export async function renderPatients(root){
         <h4 style="border-top:1px solid var(--line); padding-top:1rem">Add Manual Reading</h4>
         <form id="addForm" style="display:grid; gap:0.5rem">
             <div class="row" style="display:flex; gap:0.5rem">
-                <input id="val" type="number" placeholder="Value (mg/dL)" min="0" required style="flex:1">
+                <input id="val" type="number" placeholder="mg/dL" min="0" required style="flex:1">
                 <input id="food" placeholder="Food" style="flex:1">
             </div>
             <div class="row" style="display:flex; gap:0.5rem">
@@ -81,7 +84,6 @@ export async function renderPatients(root){
 
   let data = await listPatients();
   let sortKey = 'name', sortDir = 1;
-  
   const drawer = root.querySelector('#drawer');
   
   function renderRows(rows){
@@ -116,7 +118,6 @@ export async function renderPatients(root){
 
   root.querySelector('#go').onclick = async ()=>{ data = await listPatients(root.querySelector('#q').value); apply(); };
   apply();
-
   root.querySelector('#drawerClose').onclick = ()=>{ drawer.classList.remove('open'); drawer.setAttribute('aria-hidden','true'); };
 
   async function openDrawer(p, fullProfile){
@@ -141,6 +142,7 @@ export async function renderPatients(root){
             
             const filtered = readings.filter(r => r.ts >= cutoff).map(withCat);
             
+            // Table
             root.querySelector('#dList').innerHTML = rowsHtml(
                 filtered.slice().reverse().slice(0,5).map(r => [
                     new Date(r.ts).toLocaleString(),
@@ -149,35 +151,38 @@ export async function renderPatients(root){
                 ])
             );
 
-            // FIX: Use valueMgdl for chart data
+            // Chart
             drawLine('dChart', filtered.map(r => ({ x: r.ts, y: r.valueMgdl, cat: r.cat })));
         };
 
         root.querySelector('#dRange').onchange = renderChart;
         renderChart();
 
-        // Feedback Form
+        // Feedback Form (with Link)
         root.querySelector('#fbForm').onsubmit = async (e) => {
             e.preventDefault();
             const txt = root.querySelector('#fbText').value.trim();
-            if(!txt) return;
-            await sendFeedback(p.id, txt);
+            const link = root.querySelector('#fbLink')?.value.trim(); // Optional Link
+            if(!txt)return;
+            
+            await sendFeedback(p.id, txt, link);
+            
             root.querySelector('#fbMsg').textContent = 'Sent!';
             root.querySelector('#fbText').value = '';
+            if(root.querySelector('#fbLink')) root.querySelector('#fbLink').value = '';
         };
 
-        // Add Reading Form (Fixed Payload)
+        // Add Reading Form (Corrected Payload)
         root.querySelector('#addForm').onsubmit = async (e) => {
             e.preventDefault();
             const v = Number(root.querySelector('#val').value);
             if(isNaN(v)) return;
             
-            // FIX: Send correct payload structure to backend
             const payload = {
                 patientId: p.id,
                 ts: Date.now(),
-                value: v,          // Backend expects 'value'
-                unit: 'mg/dL',     // Backend expects 'unit'
+                value: v,
+                unit: 'mg/dL',
                 foodIntake: root.querySelector('#food').value,
                 eventActivity: root.querySelector('#event').value,
                 symptoms: root.querySelector('#symp').value,
@@ -185,19 +190,16 @@ export async function renderPatients(root){
             };
             
             await addReading(payload);
-            
-            // Refresh data
             readings = await getPatientReadings(p.id);
             renderChart();
             
-            // Clear form
+            // Clear Inputs
             root.querySelector('#val').value = '';
             root.querySelector('#food').value = '';
             root.querySelector('#event').value = '';
             root.querySelector('#symp').value = '';
         };
     }
-
     drawer.classList.add('open');
     drawer.setAttribute('aria-hidden','false');
   }

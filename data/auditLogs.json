@@ -1,1 +1,35 @@
-[]
+[
+  {
+    "actorType": "admin",
+    "actorId": 1,
+    "actionType": "report_generated",
+    "resourceType": "Report",
+    "resourceId": 1,
+    "details": "Generated Custom report for 2025-11-24 to 2025-11-25",
+    "createdAt": "2025-11-25T21:54:30.149Z",
+    "id": 1,
+    "updatedAt": "2025-11-25T21:54:30.149Z"
+  },
+  {
+    "actorType": "admin",
+    "actorId": 1,
+    "actionType": "report_generated",
+    "resourceType": "Report",
+    "resourceId": 2,
+    "details": "Generated Custom report for 2025-11-24 to 2025-11-25",
+    "createdAt": "2025-11-25T21:55:23.650Z",
+    "id": 2,
+    "updatedAt": "2025-11-25T21:55:23.651Z"
+  },
+  {
+    "actorType": "admin",
+    "actorId": 1,
+    "actionType": "report_generated",
+    "resourceType": "Report",
+    "resourceId": 3,
+    "details": "Generated Custom report for 2025-11-24 to 2025-11-25",
+    "createdAt": "2025-11-25T21:55:29.061Z",
+    "id": 3,
+    "updatedAt": "2025-11-25T21:55:29.061Z"
+  }
+]
