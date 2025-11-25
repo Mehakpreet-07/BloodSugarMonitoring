@@ -2,11 +2,11 @@
   {
     "patientId": 1,
     "specialistId": 1,
-    "triggeredAt": "2025-11-25T19:45:33.190Z",
+    "triggeredAt": "2025-11-25T20:14:56.457Z",
     "reason": "More than 3 abnormal readings in the past 7 days",
     "status": "Pending",
     "id": 1,
-    "createdAt": "2025-11-25T21:45:33.212Z",
-    "updatedAt": "2025-11-25T21:45:33.212Z"
+    "createdAt": "2025-11-25T22:14:56.477Z",
+    "updatedAt": "2025-11-25T22:14:56.477Z"
   }
 ]

@@ -1,46 +1,24 @@
 [
   {
-    "sessionId": "d4e31284ac904b39796e1c8fe8bc6bbc42c7106ac27f51d27a8ae5602389db89",
-    "userId": 2,
-    "role": "patient",
-    "csrfToken": "d70be30f07a19755b87caa98249e2607",
-    "active": true,
-    "expiresAt": "2025-11-25T22:16:20.003Z",
-    "id": 1,
-    "createdAt": "2025-11-25T21:46:20.003Z",
-    "updatedAt": "2025-11-25T21:46:20.003Z"
-  },
-  {
-    "sessionId": "7f649e5feae16d3f3c13ea03ade74d5dc86294b7c9780b78e2f543d5a1741a9f",
-    "userId": 1,
-    "role": "staff",
-    "csrfToken": "602d8f1c5708e41cf6cb758a77443872",
-    "active": true,
-    "expiresAt": "2025-11-25T22:23:05.101Z",
-    "id": 2,
-    "createdAt": "2025-11-25T21:53:05.101Z",
-    "updatedAt": "2025-11-25T21:53:05.101Z"
-  },
-  {
-    "sessionId": "f134becdb8e8af8db52f49d254bc9372c08ee40293c6ed27dcb927f440b033f5",
-    "userId": 1,
-    "role": "specialist",
-    "csrfToken": "cf6487bea2fa0a790e393ee184e786bc",
-    "active": true,
-    "expiresAt": "2025-11-25T22:23:42.384Z",
-    "id": 3,
-    "createdAt": "2025-11-25T21:53:42.384Z",
-    "updatedAt": "2025-11-25T21:53:42.384Z"
-  },
-  {
-    "sessionId": "0586eca86405feb773ec96847457bc5fad13faa6bff4fa3da1908605168e4c33",
+    "sessionId": "4ee8176916c6f1819976a40e04b8fa1b43a9817061351f542f33f007b57bfeee",
     "userId": 1,
     "role": "admin",
-    "csrfToken": "4c54f79b7292dd5f8d9df1a874dd0410",
+    "csrfToken": "c9780bfdc792eff95fff93fc805b3202",
     "active": true,
-    "expiresAt": "2025-11-25T22:23:57.756Z",
-    "id": 4,
-    "createdAt": "2025-11-25T21:53:57.756Z",
-    "updatedAt": "2025-11-25T21:53:57.756Z"
+    "expiresAt": "2025-11-25T22:45:03.659Z",
+    "id": 1,
+    "createdAt": "2025-11-25T22:15:03.659Z",
+    "updatedAt": "2025-11-25T22:15:03.659Z"
+  },
+  {
+    "sessionId": "4e9234916163686509b6e284243c4f8f0d83c4669bdbb6f75583a56158afd604",
+    "userId": 1,
+    "role": "staff",
+    "csrfToken": "1ff62a63eda95ab7d6e3d1ca13852f21",
+    "active": true,
+    "expiresAt": "2025-11-25T22:45:09.682Z",
+    "id": 2,
+    "createdAt": "2025-11-25T22:15:09.682Z",
+    "updatedAt": "2025-11-25T22:15:09.682Z"
   }
 ]

@@ -6,46 +6,65 @@ const { URL } = require('url');
 const { db } = require('./storage/db');
 const { cookieParser, requireAuth, requireRole, requireCSRF } = require('./middleware/auth');
 
-// Routes
+// Route Handlers
 const authRoutes = require('./routes/auth');
 const readingsRoutes = require('./routes/readings');
 const patientsRoutes = require('./routes/patients');
 const alertsRoutes = require('./routes/alerts');
 const reportsRoutes = require('./routes/reports');
 const emailTemplatesRoutes = require('./routes/emailTemplates'); 
-const adminRoutes = require('./routes/admin');
+const adminRoutes = require('./routes/admin'); // Critical: Admin features
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, '../public');
 
+// Helper: Parse JSON Body
 async function parseBody(req) {
   return new Promise((resolve, reject) => {
     let body = '';
-    req.on('data', chunk => { body += chunk.toString(); if(body.length > 1e6) { req.connection.destroy(); reject(new Error('Payload too large')); } });
-    req.on('end', () => { try { resolve(body ? JSON.parse(body) : {}); } catch (err) { resolve({}); } });
+    req.on('data', chunk => { 
+        body += chunk.toString(); 
+        if(body.length > 1e6) { req.connection.destroy(); reject(new Error('Payload too large')); } 
+    });
+    req.on('end', () => { 
+        try { resolve(body ? JSON.parse(body) : {}); } catch (err) { resolve({}); } 
+    });
     req.on('error', reject);
   });
 }
 
+// Helper: Send JSON Response
 function sendJSON(res, statusCode, data) {
-  res.writeHead(statusCode, { 'Content-Type': 'application/json', 'X-Content-Type-Options': 'nosniff' });
+  res.writeHead(statusCode, { 
+      'Content-Type': 'application/json', 
+      'X-Content-Type-Options': 'nosniff' 
+  });
   res.end(JSON.stringify(data));
 }
 
+// Helper: Serve Static Files
 function serveStatic(req, res) {
   const urlPath = req.url === '/' ? '/index.html' : req.url;
   const filePath = path.normalize(path.join(PUBLIC_DIR, urlPath.split('?')[0]));
-  if (!filePath.startsWith(PUBLIC_DIR)) { res.writeHead(403); return res.end('Forbidden'); }
+
+  if (!filePath.startsWith(PUBLIC_DIR)) { 
+      res.writeHead(403); return res.end('Forbidden'); 
+  }
   
   fs.readFile(filePath, (err, data) => {
     if (err) { res.writeHead(404); return res.end('Not found'); }
     const ext = path.extname(filePath).toLowerCase();
-    const types = { '.html':'text/html', '.css':'text/css', '.js':'text/javascript', '.json':'application/json', '.png':'image/png', '.jpg':'image/jpeg', '.ico':'image/x-icon' };
+    const types = { 
+        '.html':'text/html', '.css':'text/css', '.js':'text/javascript', 
+        '.json':'application/json', '.png':'image/png', '.jpg':'image/jpeg', 
+        '.svg':'image/svg+xml', '.ico':'image/x-icon' 
+    };
     res.writeHead(200, { 'Content-Type': types[ext]||'application/octet-stream' });
     res.end(data);
   });
 }
 
+// Main API Router
 async function handleAPI(req, res) {
   try {
     cookieParser(req, res, () => {});
@@ -59,21 +78,23 @@ async function handleAPI(req, res) {
     req.query = Object.fromEntries(url.searchParams);
     req.params = {};
 
-    // Public Routes
+    // --- Public Routes ---
     if (p === '/api/auth/register' && req.method === 'POST') return await authRoutes.register(req, res);
     if (p === '/api/auth/login' && req.method === 'POST') return await authRoutes.login(req, res);
     if (p === '/api/auth/logout' && req.method === 'POST') return await authRoutes.logout(req, res);
     if (p === '/api/auth/me' && req.method === 'GET') return await authRoutes.me(req, res);
+    if (p === '/api/auth/forgot-password' && req.method === 'POST') return await authRoutes.forgotPassword(req, res);
 
-    // Auth Check
+    // --- Middleware Checks ---
     await new Promise((res, rej) => requireAuth(req, res, (e) => e ? rej(e) : res()));
     
-    // CSRF Check
     if (['POST', 'PUT', 'DELETE'].includes(req.method)) {
         await new Promise((res, rej) => requireCSRF(req, res, (e) => e ? rej(e) : res()));
     }
 
-    // Protected Routes
+    // --- Protected Routes ---
+    
+    // Profile
     if (p === '/api/auth/profile' && req.method === 'PUT') return authRoutes.updateProfile(req, res);
     
     // Readings
@@ -125,28 +146,32 @@ async function handleAPI(req, res) {
     if (p === '/api/admin/users' && req.method === 'GET') return adminRoutes.getUsers(req, res);
     if (p === '/api/admin/create' && req.method === 'POST') return adminRoutes.createProfessional(req, res);
     
-    // FIX: Added Admin Update User Route
+    // Admin Update User Route (Added for "Edit" button)
     if (p.match(/\/api\/admin\/users\/\w+\/\d+/) && req.method === 'PUT') {
         const parts = p.split('/');
         req.params = { role: parts[4], id: parts[5] };
         return adminRoutes.updateUser(req, res);
     }
 
+    // Admin Delete User Route
     if (p.match(/\/api\/admin\/users\/\w+\/\d+/) && req.method === 'DELETE') {
         const parts = p.split('/');
         req.params = { role: parts[4], id: parts[5] };
         return adminRoutes.deleteUser(req, res);
     }
 
-    // Reports/Settings
+    // Reports, Logs & Settings
     if (p === '/api/reports') {
         if (req.method === 'POST') return reportsRoutes.generateReport(req, res);
         if (req.method === 'GET') return reportsRoutes.getReports(req, res);
     }
     if (p === '/api/audit-logs' && req.method === 'GET') return reportsRoutes.getAuditLogs(req, res);
+    
     if (p === '/api/kpis' && req.method === 'GET') {
         let patientQuery = {};
+        // Filter patients based on role (Specialist sees own, Admin sees all)
         if (req.user.role === 'specialist') patientQuery.assignedSpecialistId = req.user.id;
+        
         const patients = await db.find('patients', patientQuery);
         const allAlerts = await db.find('alerts');
         const openAlerts = allAlerts.filter(a => {
@@ -155,8 +180,10 @@ async function handleAPI(req, res) {
             return statusMatch && userMatch;
         });
         const critical = openAlerts.filter(a => a.reason && a.reason.toLowerCase().includes('abnormal')).length;
+        
         return sendJSON(res, 200, { ok: true, patients: patients.length, alerts: openAlerts.length, critical, consults: 0, pending: 0 });
     }
+
     if (p === '/api/settings/thresholds') {
         if(req.method === 'GET') return reportsRoutes.getThresholds(req, res);
         if(req.method === 'PUT') return reportsRoutes.updateThresholds(req, res);
@@ -175,11 +202,30 @@ async function handleAPI(req, res) {
 
 async function startServer() {
   try {
+    console.log('Initializing database...');
     await db.init();
-    http.createServer(async (req, res) => {
+    console.log('Database initialized');
+    
+    const server = http.createServer(async (req, res) => {
       if (req.url.startsWith('/api')) await handleAPI(req, res);
       else serveStatic(req, res);
-    }).listen(PORT, () => console.log(`Server running on ${PORT}`));
-  } catch (err) { console.error(err); }
+    });
+
+    server.listen(PORT, () => {
+      console.log('');
+      console.log('═══════════════════════════════════════════════════════');
+      console.log('  Blood Sugar Monitoring System');
+      console.log('═══════════════════════════════════════════════════════');
+      console.log('');
+      console.log(`  ➜  Local:   http://localhost:${PORT}`);
+      console.log('');
+      console.log('  Press Ctrl+C to stop');
+      console.log('');
+    });
+  } catch (err) {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  }
 }
+
 startServer();
