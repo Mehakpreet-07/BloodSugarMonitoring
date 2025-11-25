@@ -1,24 +1,68 @@
 [
   {
-    "sessionId": "4ee8176916c6f1819976a40e04b8fa1b43a9817061351f542f33f007b57bfeee",
-    "userId": 1,
-    "role": "admin",
-    "csrfToken": "c9780bfdc792eff95fff93fc805b3202",
-    "active": true,
-    "expiresAt": "2025-11-25T22:45:03.659Z",
-    "id": 1,
-    "createdAt": "2025-11-25T22:15:03.659Z",
-    "updatedAt": "2025-11-25T22:15:03.659Z"
-  },
-  {
-    "sessionId": "4e9234916163686509b6e284243c4f8f0d83c4669bdbb6f75583a56158afd604",
+    "sessionId": "fb46c9172c46f2963b6b4ec9afd2209e02d7c0759110a69bbf7e8dc99d370720",
     "userId": 1,
     "role": "staff",
-    "csrfToken": "1ff62a63eda95ab7d6e3d1ca13852f21",
+    "csrfToken": "caff6337472dcaadf7f722445a1dc77b",
     "active": true,
-    "expiresAt": "2025-11-25T22:45:09.682Z",
+    "expiresAt": "2025-11-25T23:42:35.006Z",
+    "id": 1,
+    "createdAt": "2025-11-25T23:12:35.006Z",
+    "updatedAt": "2025-11-25T23:12:35.006Z"
+  },
+  {
+    "sessionId": "23d4093924d2a5c92ebd9f79ecfcddbda879267f395e27c1654a4dd04c8ba69b",
+    "userId": 1,
+    "role": "admin",
+    "csrfToken": "75b9007589eb346eb83415e6e5dfe5d9",
+    "active": true,
+    "expiresAt": "2025-11-25T23:42:56.076Z",
     "id": 2,
-    "createdAt": "2025-11-25T22:15:09.682Z",
-    "updatedAt": "2025-11-25T22:15:09.682Z"
+    "createdAt": "2025-11-25T23:12:56.076Z",
+    "updatedAt": "2025-11-25T23:12:56.076Z"
+  },
+  {
+    "sessionId": "11d51c96cfe9f260323e9f511ec59d54660da576e2feee83be470924230fdae5",
+    "userId": 1,
+    "role": "admin",
+    "csrfToken": "9cb6af73966d50156d12576d25298df6",
+    "active": true,
+    "expiresAt": "2025-11-25T23:54:57.607Z",
+    "id": 3,
+    "createdAt": "2025-11-25T23:24:57.607Z",
+    "updatedAt": "2025-11-25T23:24:57.607Z"
+  },
+  {
+    "sessionId": "1d85e949fe7c39878687649756d618bd6c7f45ccf54b26daec8f6284137e2288",
+    "userId": 1,
+    "role": "admin",
+    "csrfToken": "d3733051626fd8b76fecb25a25fd90f2",
+    "active": true,
+    "expiresAt": "2025-11-25T23:58:14.020Z",
+    "id": 4,
+    "createdAt": "2025-11-25T23:28:14.020Z",
+    "updatedAt": "2025-11-25T23:28:14.020Z"
+  },
+  {
+    "sessionId": "ce8986889e69defa14f2eb99ba9c6d09fb786f3fa95eb757c8e9ae369cab9c68",
+    "userId": 1,
+    "role": "admin",
+    "csrfToken": "885831c66d974c0855d0a8c5e712fc86",
+    "active": true,
+    "expiresAt": "2025-11-26T00:04:11.820Z",
+    "id": 5,
+    "createdAt": "2025-11-25T23:34:11.820Z",
+    "updatedAt": "2025-11-25T23:34:11.820Z"
+  },
+  {
+    "sessionId": "b14c9d73fbc66761fe1cb69b51b4eb08b97460503a9da2829fe34d09ea3b014e",
+    "userId": 1,
+    "role": "admin",
+    "csrfToken": "ee63b201315570700230390ead5a27b0",
+    "active": true,
+    "expiresAt": "2025-11-26T00:13:27.925Z",
+    "id": 6,
+    "createdAt": "2025-11-25T23:43:27.925Z",
+    "updatedAt": "2025-11-25T23:43:27.925Z"
   }
 ]

@@ -142,9 +142,11 @@ async function handleAPI(req, res) {
         if (req.method === 'POST') return alertsRoutes.createFeedback(req, res);
     }
     
-    // Admin Routes
+    // Admin Routes (Includes Backup/Restore & User Mgmt)
     if (p === '/api/admin/users' && req.method === 'GET') return adminRoutes.getUsers(req, res);
     if (p === '/api/admin/create' && req.method === 'POST') return adminRoutes.createProfessional(req, res);
+    if (p === '/api/admin/backup' && req.method === 'GET') return adminRoutes.getFullBackup(req, res);
+    if (p === '/api/admin/restore' && req.method === 'POST') return adminRoutes.restoreBackup(req, res);
     
     // Admin Update User Route (Added for "Edit" button)
     if (p.match(/\/api\/admin\/users\/\w+\/\d+/) && req.method === 'PUT') {

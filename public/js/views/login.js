@@ -28,9 +28,10 @@ export function renderLogin(root){
           
           <details style="margin-top:0.5rem; cursor:pointer">
             <summary>View Demo Credentials</summary>
-            <div style="margin-top:0.5rem; padding:0.5rem; background:#f9f9f9; border-radius:6px">
+            <div style="margin-top:0.5rem; padding:0.5rem; background:#f9f9f9; border-radius:6px; line-height:1.6">
                 <strong>Admin:</strong> admin@demo.test / demo<br>
                 <strong>Specialist:</strong> dr@demo.test / demo<br>
+                <strong>Staff:</strong> staff@demo.test / demo<br>
                 <strong>Patient:</strong> patient@demo.test / demo
             </div>
           </details>
@@ -69,7 +70,7 @@ export function renderLogin(root){
     else location.hash = '#/dashboard';
   };
 
-  // Password Reset Handler (The Missing Feature)
+  // Password Reset Handler
   root.querySelector('#forgotBtn').onclick = async (e) => {
       e.preventDefault();
       const email = form.querySelector('#email').value.trim();
@@ -78,9 +79,12 @@ export function renderLogin(root){
           return;
       }
       
-      // This assumes you added the forgotPassword route to auth.js earlier
-      // If not, it will just 404 gracefully, but it shows the UI intent.
       try {
+          await fetch('/api/auth/forgot-password', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ email })
+          });
           alert(`Password reset link has been sent to ${email} (Simulated). Check server console.`);
       } catch (e) {
           console.error(e);

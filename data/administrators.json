@@ -3,10 +3,10 @@
     "fullName": "System Administrator",
     "email": "admin@demo.test",
     "phone": "555-123-0000",
-    "passwordHash": "eccfa5188a539d5dda56a123f9cd39df12e1ff3b051e3090cbd68a7c47af51a4:71c8c75fd284a55c588acae0a17a2b3d0428836573ec65b370f33de9b7d4000e31b7ad5a04fae2c5af2a7d42f4f4496389efb63fba8ef9aa9449b20dff8bdff2",
+    "passwordHash": "c76ea2d710aee832193053312853d3ad4bcc7f674286a8cae4845321be1f89e4:c72e19c8704b7d835eaa0fbdf3ffc045ee61c1429b7200710fab5eeda760d3398ec73eef1199134a9c1d43f529c26b2d052c9ef8b0a0fc168645d7ce9182f775",
     "profileImage": "https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff",
     "id": 1,
-    "createdAt": "2025-11-25T22:14:56.438Z",
-    "updatedAt": "2025-11-25T22:14:56.438Z"
+    "createdAt": "2025-11-25T23:12:18.694Z",
+    "updatedAt": "2025-11-25T23:12:18.694Z"
   }
 ]

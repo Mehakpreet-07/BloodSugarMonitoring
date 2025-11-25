@@ -15,17 +15,30 @@ export async function renderAdmin(root) {
     const logs = logsRes.logs || [];
 
     root.innerHTML = `
-        <div class="tools" style="margin-bottom:1rem">
-            <button id="tabUsers" class="primary">User Management</button>
-            <button id="tabReports">Reports</button>
-            <button id="tabLogs">Audit Logs</button>
+        <div class="tools" style="margin-bottom:1rem; display:flex; justify-content:space-between; flex-wrap:wrap; gap:1rem">
+            <div>
+                <button id="tabUsers" class="primary">User Management</button>
+                <button id="tabReports">Reports</button>
+                <button id="tabLogs">Audit Logs</button>
+            </div>
+            <div style="display:flex; gap:0.5rem">
+                <button id="backupBtn" style="background:#4b5563; color:white; border:none; padding:0.5rem 1rem; border-radius:6px; cursor:pointer; display:flex; align-items:center; gap:0.5rem">
+                    ⬇ Backup Data
+                </button>
+                <label style="background:#dc2626; color:white; padding:0.5rem 1rem; border-radius:6px; cursor:pointer; display:inline-block; font-size:0.9rem">
+                    ⬆ Restore
+                    <input type="file" id="restoreInput" accept=".json" style="display:none">
+                </label>
+            </div>
         </div>
 
         <div id="viewUsers">
             <div class="grid two" style="gap:1.5rem; align-items:start">
                 <section class="panel">
                     <h3>All Users</h3>
-                    <p class="muted" style="font-size:0.8rem; margin-bottom:0.5rem">Click on Name or Email to edit, then click Save.</p>
+                    <p class="muted" style="font-size:0.8rem; margin-bottom:0.5rem">
+                        Click on <strong>Name</strong> or <strong>Email</strong> to edit, then click <strong>Save</strong>.
+                    </p>
                     <div style="overflow-x:auto">
                         <table class="list">
                             <thead><tr><th>Role</th><th>Name</th><th>Email</th><th>Actions</th></tr></thead>
@@ -33,10 +46,10 @@ export async function renderAdmin(root) {
                                 ${users.map(u => `
                                     <tr>
                                         <td><span class="badge">${u.role}</span></td>
-                                        <td contenteditable="true" id="name-${u.role}-${u.id}" style="border-bottom:1px dashed #ccc">${u.fullName}</td>
-                                        <td contenteditable="true" id="email-${u.role}-${u.id}" style="border-bottom:1px dashed #ccc">${u.email}</td>
+                                        <td contenteditable="true" id="name-${u.role}-${u.id}" style="border-bottom:1px dashed #ccc; min-width:100px">${u.fullName}</td>
+                                        <td contenteditable="true" id="email-${u.role}-${u.id}" style="border-bottom:1px dashed #ccc; min-width:150px">${u.email}</td>
                                         <td>
-                                            <button class="save-btn" data-role="${u.role}" data-id="${u.id}" style="font-size:0.8rem; margin-right:5px; padding:2px 6px; cursor:pointer">Save</button>
+                                            <button class="save-btn" data-role="${u.role}" data-id="${u.id}" style="font-size:0.8rem; margin-right:5px; padding:2px 6px; cursor:pointer; border:1px solid #ccc; border-radius:4px">Save</button>
                                             ${u.role !== 'admin' ? `<button class="del-btn" data-role="${u.role}" data-id="${u.id}" style="color:red;border:1px solid red;background:white;border-radius:4px;cursor:pointer;padding:2px 6px">Del</button>` : ''}
                                         </td>
                                     </tr>
@@ -55,13 +68,16 @@ export async function renderAdmin(root) {
                                 <option value="staff">Clinic Staff</option>
                             </select>
                         </label>
+                        
                         <input id="newName" placeholder="Full Name" required style="width:100%">
                         <input id="newEmail" type="email" placeholder="Email Address" required style="width:100%">
                         
                         <input id="newPhone" type="tel" placeholder="Phone (XXX-XXX-XXXX)" maxlength="14" required style="width:100%">
                         
-                        <input id="newWorkId" placeholder="Working ID" required style="width:100%">
-                        <input id="newSpec" placeholder="Specialization (Doctors only)" style="width:100%">
+                        <input id="newWorkId" placeholder="Working ID (e.g. S-101)" required style="width:100%">
+                        
+                        <input id="newSpec" placeholder="Field of Specialization (Doctors only)" style="width:100%">
+                        
                         <input id="newPwd" type="password" placeholder="Password" required style="width:100%">
                         
                         <button class="primary" type="submit">Create Account</button>
@@ -74,6 +90,7 @@ export async function renderAdmin(root) {
         <div id="viewReports" style="display:none">
             <section class="panel">
                 <h3>Generate Clinic Report</h3>
+                <p class="muted" style="margin-bottom:1rem">Analyze population health trends and AI-detected triggers.</p>
                 <form id="repForm" class="tools" style="margin-bottom:1.5rem">
                     <label>Start: <input type="date" id="repStart" required></label>
                     <label>End: <input type="date" id="repEnd" required></label>
@@ -87,7 +104,7 @@ export async function renderAdmin(root) {
             <section class="panel">
                 <h3>System Audit Logs</h3>
                 <div class="tools" style="margin-bottom:1rem">
-                    <input id="logSearch" placeholder="Filter logs (SDD 3.2.9)..." style="width:100%">
+                    <input id="logSearch" placeholder="Filter logs by action, actor, or details..." style="width:100%">
                 </div>
                 <div style="overflow-x:auto; max-height:500px; overflow-y:auto">
                     <table class="list" id="logTable">
@@ -99,9 +116,52 @@ export async function renderAdmin(root) {
         </div>
     `;
 
-    // --- LOGIC ---
+    // --- LOGIC & EVENT HANDLERS ---
 
-    // 1. Phone Input Masking
+    // 1. Backup Data
+    root.querySelector('#backupBtn').onclick = async () => {
+        try {
+            const r = await fetch('/api/admin/backup');
+            const d = await r.json();
+            if(!d.ok) throw new Error(d.error);
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(d.backup, null, 2));
+            const node = document.createElement('a');
+            node.setAttribute("href", dataStr);
+            node.setAttribute("download", "clinic_backup_" + new Date().toISOString().split('T')[0] + ".json");
+            document.body.appendChild(node);
+            node.click();
+            node.remove();
+        } catch(e) { alert('Backup failed: ' + e.message); }
+    };
+
+    // 2. Restore Data
+    root.querySelector('#restoreInput').onchange = (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
+        
+        if(!confirm('WARNING: This will OVERWRITE the entire database with the backup file. Are you sure?')) {
+            e.target.value = ''; return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = async (ev) => {
+            try {
+                const backupData = JSON.parse(ev.target.result);
+                const r = await fetch('/api/admin/restore', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-csrf-token': store.csrfToken },
+                    body: JSON.stringify({ backup: backupData })
+                });
+                const d = await r.json();
+                if(d.ok) { alert('System Restored Successfully! Reloading...'); location.reload(); }
+                else { alert('Restore failed: ' + d.error); }
+            } catch(err) { alert('Invalid Backup File'); }
+        };
+        reader.readAsText(file);
+    };
+
+    // 3. Phone Input Masking
     const phoneInput = root.querySelector('#newPhone');
     phoneInput.addEventListener('input', (e) => {
         let v = e.target.value.replace(/\D/g, '');
@@ -111,7 +171,7 @@ export async function renderAdmin(root) {
         e.target.value = v;
     });
 
-    // 2. Tab Switching
+    // 4. Tab Switching
     const tabs = { tabUsers: 'viewUsers', tabReports: 'viewReports', tabLogs: 'viewLogs' };
     Object.keys(tabs).forEach(btnId => {
         root.querySelector('#'+btnId).onclick = () => {
@@ -124,22 +184,19 @@ export async function renderAdmin(root) {
         };
     });
 
-    // 3. EDIT USER (SRS 3.1.4.a) - The Missing Feature
+    // 5. Edit User (Save Changes)
     root.querySelectorAll('.save-btn').forEach(btn => {
         btn.onclick = async () => {
             const role = btn.getAttribute('data-role');
             const id = btn.getAttribute('data-id');
             
-            // Get values from editable cells
             const nameCell = document.getElementById(`name-${role}-${id}`);
             const emailCell = document.getElementById(`email-${role}-${id}`);
             
             const newName = nameCell.innerText.trim();
             const newEmail = emailCell.innerText.trim();
             
-            // Optimistic UI update (visual feedback)
             btn.textContent = 'Saving...';
-            
             try {
                 const res = await fetch(`/api/admin/users/${role}/${id}`, {
                     method: 'PUT',
@@ -147,37 +204,36 @@ export async function renderAdmin(root) {
                     body: JSON.stringify({ fullName: newName, email: newEmail })
                 });
                 
-                if(res.ok) {
-                    btn.textContent = 'Saved ✓';
-                    setTimeout(() => btn.textContent = 'Save', 2000);
-                } else {
-                    btn.textContent = 'Error';
+                if(res.ok) { 
+                    btn.textContent = 'Saved ✓'; 
+                    setTimeout(() => btn.textContent = 'Save', 2000); 
+                } else { 
+                    btn.textContent = 'Error'; 
                     alert('Failed to update user.');
                 }
-            } catch (e) {
-                alert('Network error');
+            } catch (e) { 
+                btn.textContent = 'Error'; 
             }
         };
     });
 
-    // 4. Delete User
+    // 6. Delete User
     root.querySelectorAll('.del-btn').forEach(btn => {
         btn.onclick = async () => {
-            if(!confirm('Delete user?')) return;
+            if(!confirm('Delete user? This cannot be undone.')) return;
             const role = btn.getAttribute('data-role');
             const id = btn.getAttribute('data-id');
             await fetch(`/api/admin/users/${role}/${id}`, { method: 'DELETE', headers: {'x-csrf-token': store.csrfToken} });
-            renderAdmin(root);
+            renderAdmin(root); 
         };
     });
 
-    // 5. Create User
+    // 7. Create User
     root.querySelector('#createForm').onsubmit = async (e) => {
         e.preventDefault();
         const msg = root.querySelector('#formMsg');
         msg.textContent = 'Creating...';
         
-        // Validation
         const rawPhone = phoneInput.value.replace(/\D/g, '');
         if (rawPhone.length < 10) {
             msg.textContent = 'Phone number must be 10 digits.';
@@ -204,7 +260,7 @@ export async function renderAdmin(root) {
         if(res.ok) {
             msg.textContent = 'Success!';
             msg.style.color = 'green';
-            setTimeout(() => renderAdmin(root), 1000);
+            setTimeout(() => renderAdmin(root), 1000); 
         } else {
             const d = await res.json();
             msg.textContent = d.error || 'Error creating user';
@@ -212,7 +268,7 @@ export async function renderAdmin(root) {
         }
     };
 
-    // 6. Audit Log Filter
+    // 8. Audit Log Filter
     const logBody = root.querySelector('#logTable tbody');
     const renderLogs = (filter='') => {
         const f = filter.toLowerCase();
@@ -230,10 +286,10 @@ export async function renderAdmin(root) {
             </tr>
         `).join('') || '<tr><td colspan="4" style="text-align:center">No matching logs</td></tr>';
     };
-    renderLogs();
+    renderLogs(); 
     root.querySelector('#logSearch').addEventListener('input', (e) => renderLogs(e.target.value));
 
-    // 7. Report Logic
+    // 9. Generate Report
     root.querySelector('#repForm').onsubmit = async (e) => {
         e.preventDefault();
         const start = root.querySelector('#repStart').value;
@@ -280,7 +336,7 @@ export async function renderAdmin(root) {
                     <div style="background:${boxColor}; padding:1rem; border-radius:8px; border:1px solid ${borderColor}">
                         <h5 style="margin:0 0 0.5rem 0; color:${textColor}">${icon} ${title}</h5>
                         <ul style="margin:0; padding-left:1.2rem; color:${textColor}">
-                            ${triggers.length ? triggers.map(t => `<li><strong>${t.trigger}</strong> (${t.correlation}%)</li>`).join('') : '<li>No patterns detected</li>'}
+                            ${hasBadPatterns ? triggers.map(t => `<li><strong>${t.trigger}</strong> (${t.correlation}%)</li>`).join('') : '<li>No adverse patterns detected in this period. Clinic status is stable.</li>'}
                         </ul>
                     </div>
                 </div>

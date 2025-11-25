@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "actorType": "admin",
+    "actorId": 1,
+    "actionType": "user_deleted",
+    "details": "Deleted user 1 (patient)",
+    "createdAt": "2025-11-25T23:25:08.980Z",
+    "id": 1,
+    "updatedAt": "2025-11-25T23:25:08.980Z"
+  },
+  {
+    "actorType": "admin",
+    "actorId": 1,
+    "actionType": "user_deleted",
+    "details": "Deleted user 1 (specialist)",
+    "createdAt": "2025-11-25T23:25:11.478Z",
+    "id": 2,
+    "updatedAt": "2025-11-25T23:25:11.478Z"
+  }
+]
