@@ -51,4 +51,3 @@ export function drawLine(canvasId, points){
     ctx.fill();
   });
 }
-

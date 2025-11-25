@@ -1,1 +1,24 @@
-[]
+[
+  {
+    "adminId": 1,
+    "periodStart": "2025-11-23T00:00:00.000Z",
+    "periodEnd": "2025-11-25T00:00:00.000Z",
+    "reportType": "monthly",
+    "numberOfPatients": 3,
+    "avgBloodSugarMg": 120.88,
+    "maxBloodSugarMg": 195,
+    "minBloodSugarMg": 67,
+    "totalReadings": 8,
+    "categoryBreakdown": {
+      "totalReadings": 8,
+      "abnormalHigh": 0,
+      "abnormalLow": 1,
+      "normal": 7,
+      "borderline": 0
+    },
+    "foodActivityTriggers": "{\"topTriggersHigh\":[],\"topTriggersLow\":[{\"trigger\":\"reading\",\"count\":1,\"correlation\":100},{\"trigger\":\"14:00\",\"count\":1,\"correlation\":100}]}",
+    "createdAt": "2025-11-25T05:57:34.991Z",
+    "id": 1,
+    "updatedAt": "2025-11-25T05:57:34.991Z"
+  }
+]

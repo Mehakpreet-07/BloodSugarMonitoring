@@ -2,7 +2,6 @@ import { store } from '../state/store.js';
 
 export function mountSidebar(node, onNav){
   function linksFor(role){
-    // Not signed in
     if (!role) {
       return [
         { hash:'#/login',    label:'Sign in' },
@@ -10,7 +9,6 @@ export function mountSidebar(node, onNav){
       ];
     }
 
-    // Patient
     if (role === 'patient') {
       return [
         { hash:'#/overview', label:'Overview' },
@@ -19,7 +17,6 @@ export function mountSidebar(node, onNav){
       ];
     }
 
-    // Clinic staff
     if (role === 'staff') {
       return [
         { hash:'#/settings', label:'Settings' },
@@ -28,19 +25,17 @@ export function mountSidebar(node, onNav){
       ];
     }
 
-    // Admin - ADDED USER MANAGEMENT
+    // ADMIN (Updated for Compliance)
     if (role === 'admin') {
       return [
-        { hash:'#/dashboard', label:'Dashboard' },
-        { hash:'#/admin',     label:'User Management' }, // <--- NEW LINK
-        { hash:'#/patients',  label:'Patients' },
+        { hash:'#/admin',     label:'User Management' }, // Main tool
         { hash:'#/settings',  label:'Settings' },
         { hash:'#/emails',    label:'Email templates' },
         { hash:'#/profile',   label:'Profile' }
       ];
     }
 
-    // Specialist (Doctor)
+    // Specialist
     return [
       { hash:'#/dashboard', label:'Dashboard' },
       { hash:'#/patients',  label:'Patients' },

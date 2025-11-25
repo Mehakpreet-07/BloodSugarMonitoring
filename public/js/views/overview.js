@@ -1,8 +1,7 @@
-// public/js/views/overview.js
 import { store } from '../state/store.js';
 import { getPatientReadings } from '../api/patients.js';
 import { getThresholds } from '../api/settings.js';
-import { addReading, deleteReading } from '../api/readings.js';
+import { addReading, updateReading, deleteReading } from '../api/readings.js'; // Added updateReading
 import { drawLine } from '../components/chart.js';
 import { rowsHtml } from '../components/table.js';
 import { makeAiAdvice, adviceHtml } from '../utils/ai.js';
@@ -38,16 +37,22 @@ export async function renderOverview(root){
     getMyFeedback()
   ]);
 
+  const normalMax = thr.normalMax || thr.normalMaxMg || 140;
+  const borderlineMax = thr.borderlineMax || thr.borderlineMaxMg || 180;
+
+  // FIX: Use Patient's Preferred Unit from Profile
+  const userUnit = me.preferredUnit || 'mg/dL';
+
   function getCat(val) {
-    if (val <= thr.normalMax) return 'Normal';
-    if (val <= thr.borderlineMax) return 'Borderline';
+    // Thresholds are in mg/dL, so ensure we compare mg/dL
+    if (val <= normalMax) return 'Normal';
+    if (val <= borderlineMax) return 'Borderline';
     return 'Abnormal';
   }
 
-  const unitLabel = thr.unit === 'mmol' ? 'mmol/L' : 'mg/dL';
-  function displayVal(val) {
-     if (thr.unit === 'mmol') return (val * 0.0555).toFixed(1) + ' mmol/L';
-     return Math.round(val) + ' mg/dL';
+  function displayVal(valMg) {
+     if (userUnit === 'mmol/L') return (valMg * 0.0555).toFixed(1) + ' mmol/L';
+     return Math.round(valMg) + ' mg/dL';
   }
 
   const latestFeedback = feedbackList.length > 0 ? feedbackList[0] : null;
@@ -93,27 +98,30 @@ export async function renderOverview(root){
       <div class="panel">
         <h3>Thresholds</h3>
         <p class="muted" style="margin-top:.6rem">
-          Normal: &le; <strong>${thr.normalMax}</strong><br>
-          Borderline: &le; <strong>${thr.borderlineMax}</strong><br>
-          Unit: <strong>${unitLabel}</strong>
+          Normal: &le; <strong>${displayVal(normalMax)}</strong><br>
+          Borderline: &le; <strong>${displayVal(borderlineMax)}</strong><br>
+          Unit: <strong>${userUnit}</strong>
         </p>
       </div>
     </section>
 
-    <section class="panel" style="margin-top:1rem">
+    <section class="panel" id="formPanel" style="margin-top:1rem; transition: background 0.3s">
       <h3 id="formTitle">Log New Reading</h3>
       <form id="addForm" style="display:grid; gap:1rem; margin-top:1rem">
-        <input type="hidden" id="editId" value=""> <div class="grid two" style="gap:1rem">
-            <input id="val" type="number" placeholder="Value (${unitLabel})" min="0" step="0.1" required style="font-size:1.1rem">
+        <input type="hidden" id="editId" value=""> 
+        
+        <div class="grid two" style="gap:1rem">
+            <input id="val" type="number" placeholder="Value (${userUnit})" min="0" step="0.1" required style="font-size:1.1rem">
             <input id="food" type="text" placeholder="Food Intake (e.g. Pizza)">
         </div>
         <div class="grid two" style="gap:1rem">
             <input id="event" type="text" placeholder="Activity/Event (e.g. Stress)">
             <input id="symp" type="text" placeholder="Symptoms (e.g. Dizzy)">
         </div>
+        
         <div class="tools">
             <button class="primary" type="submit" id="saveBtn">Save Log</button>
-            <button type="button" id="cancelEdit" style="display:none">Cancel Edit</button>
+            <button type="button" id="cancelEdit" style="display:none; background:#f1f1f1; color:#333">Cancel Edit</button>
         </div>
       </form>
       <p id="addMsg" class="muted" style="margin-top:.5rem"></p>
@@ -164,8 +172,8 @@ export async function renderOverview(root){
            <strong>Symp:</strong> ${r.symptoms || '-'}
          </div>` }, 
         { html: `
-            <button class="edit-btn" data-id="${r.id}" style="margin-right:5px">Edit</button>
-            <button class="del-btn" data-id="${r.id}" style="color:red">×</button>
+            <button class="edit-btn" data-id="${r.id}" style="margin-right:5px; padding:2px 6px; border:1px solid #ccc; border-radius:4px; cursor:pointer">Edit</button>
+            <button class="del-btn" data-id="${r.id}" style="color:red;border:1px solid red;background:white;border-radius:4px;cursor:pointer;padding:2px 6px">×</button>
         ` }
       ]);
       
@@ -184,7 +192,7 @@ export async function renderOverview(root){
         };
       });
 
-      // Edit Handlers (Populate Form)
+      // Edit Handlers
       tableEl.querySelectorAll('.edit-btn').forEach(btn => {
         btn.onclick = () => {
             const id = btn.getAttribute('data-id');
@@ -192,15 +200,21 @@ export async function renderOverview(root){
             if (!r) return;
 
             root.querySelector('#editId').value = r.id;
-            root.querySelector('#val').value = thr.unit === 'mmol' ? (r.valueMgdl * 0.0555).toFixed(1) : r.valueMgdl;
+            // Pre-fill logic: Convert stored mg/dL to user unit
+            const displayV = userUnit === 'mmol/L' ? (r.valueMgdl * 0.0555).toFixed(1) : r.valueMgdl;
+            root.querySelector('#val').value = displayV;
+            
             root.querySelector('#food').value = r.foodIntake || '';
             root.querySelector('#event').value = r.eventActivity || '';
             root.querySelector('#symp').value = r.symptoms || '';
             
-            root.querySelector('#formTitle').textContent = 'Edit Reading';
-            root.querySelector('#saveBtn').textContent = 'Update Reading';
+            root.querySelector('#formTitle').textContent = 'Update Reading';
+            root.querySelector('#saveBtn').textContent = 'Update';
             root.querySelector('#cancelEdit').style.display = 'inline-block';
-            window.scrollTo(0, document.body.scrollHeight);
+            
+            const formPanel = root.querySelector('#formPanel');
+            formPanel.style.background = '#fff9e6';
+            formPanel.scrollIntoView({ behavior: 'smooth' });
         };
       });
     }
@@ -216,8 +230,8 @@ export async function renderOverview(root){
 
   const addForm = root.querySelector('#addForm');
   const cancelBtn = root.querySelector('#cancelEdit');
+  const formPanel = root.querySelector('#formPanel');
 
-  // Reset form helper
   const resetForm = () => {
       root.querySelector('#editId').value = '';
       root.querySelector('#val').value = '';
@@ -227,6 +241,7 @@ export async function renderOverview(root){
       root.querySelector('#formTitle').textContent = 'Log New Reading';
       root.querySelector('#saveBtn').textContent = 'Save Log';
       cancelBtn.style.display = 'none';
+      formPanel.style.background = 'transparent';
   };
 
   cancelBtn.onclick = resetForm;
@@ -241,30 +256,22 @@ export async function renderOverview(root){
     if (isNaN(v) || v < 0) { msg.textContent = 'Invalid value'; return; }
 
     const editId = root.querySelector('#editId').value;
-    const apiUnit = thr.unit === 'mmol' ? 'mmol/L' : 'mg/dL';
     
     const payload = {
       patientId,
       value: v,
-      unit: apiUnit,
+      unit: userUnit, // Send correct unit!
       foodIntake: root.querySelector('#food').value,
       eventActivity: root.querySelector('#event').value,
       symptoms: root.querySelector('#symp').value,
       recordedAt: new Date().toISOString()
     };
 
-    // Decide: Create or Update?
     let res;
     if (editId) {
-        // UPDATE (using fetch directly since api/readings.js might not have updateReading exported)
-        // Assuming server supports PUT /api/readings/:id
-        res = await fetch(`/api/readings/${editId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'x-csrf-token': store.csrfToken },
-            body: JSON.stringify(payload)
-        }).then(r => r.json());
+        // FIXED: Uses secure updateReading function
+        res = await updateReading(editId, payload);
     } else {
-        // CREATE
         res = await addReading(payload);
     }
 
@@ -273,9 +280,8 @@ export async function renderOverview(root){
       return;
     }
 
-    // Update Local Data
     let valMg = v;
-    if (apiUnit === 'mmol/L') valMg = Math.round(v * 18);
+    if (userUnit === 'mmol/L') valMg = Math.round(v * 18);
     
     if (editId) {
         const idx = allReadings.findIndex(r => String(r.id) === String(editId));

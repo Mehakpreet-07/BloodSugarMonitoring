@@ -7,7 +7,7 @@ import { renderOverview }   from './views/overview.js';
 import { renderLogin }      from './views/login.js';
 import { renderRegister }   from './views/register.js';
 import { renderEmailTemplates } from './views/emailTemplates.js';
-import { renderAdmin }      from './views/admin.js'; // <--- NEW IMPORT
+import { renderAdmin }      from './views/admin.js';
 import { store }            from './state/store.js';
 
 const routes = {
@@ -20,12 +20,14 @@ const routes = {
   '#/profile'  : renderProfile,
   '#/overview' : renderOverview,
   '#/emails'   : renderEmailTemplates,
-  '#/admin'    : renderAdmin // <--- NEW ROUTE
+  '#/admin'    : renderAdmin
 };
 
 function defaultHashFor(user){
   if (!user) return '#/login';
-  return user.role === 'patient' ? '#/overview' : '#/dashboard';
+  if (user.role === 'patient') return '#/overview';
+  if (user.role === 'admin') return '#/admin';
+  return '#/dashboard';
 }
 
 export function router(){
@@ -35,18 +37,44 @@ export function router(){
 
   const publicRoutes = new Set(['#/login', '#/register']);
 
+  // 1. Not logged in -> Login
   if (!user && !publicRoutes.has(hash)) {
     hash = '#/login';
     if (location.hash !== hash) location.hash = hash;
   }
 
-  // Security Check for Admin Route
+  // 2. Patient attempting to access Admin/Staff pages
+  if (
+    user?.role === 'patient' &&
+    (hash === '#/patients' || hash === '#/alerts' || hash === '#/dashboard' || hash === '#/emails' || hash === '#/admin')
+  ){
+    hash = '#/overview';
+    if (location.hash !== hash) location.hash = hash;
+  }
+
+  // 3. Admin attempting to access Medical pages (Charts/Alerts)
+  // SRS Compliance: Admins manage users, they don't view medical charts.
+  if (
+    user?.role === 'admin' &&
+    (hash === '#/patients' || hash === '#/alerts')
+  ){
+      hash = '#/admin';
+      if (location.hash !== hash) location.hash = hash;
+  }
+
+  // 4. Staff/Admin Pages
+  const restricted = new Set(['#/emails']);
+  if (user && restricted.has(hash) && (user.role !== 'admin' && user.role !== 'staff')) {
+    hash = defaultHashFor(user);
+    if (location.hash !== hash) location.hash = hash;
+  }
+
+  // 5. Admin Only Page
   if (hash === '#/admin' && user?.role !== 'admin') {
       hash = defaultHashFor(user);
       if (location.hash !== hash) location.hash = hash;
   }
 
-  // Render page
   page.innerHTML = '';
   (routes[hash] || renderLogin)(page);
 

@@ -1,67 +1,164 @@
 import { store } from '../state/store.js';
-import { getTemplates, saveTemplates } from '../api/templates.js';
 
-export async function renderEmailTemplates(root){
+export function renderProfile(root) {
   const user = store.user;
   
-  // FIX: Allow 'staff' role to access this page (SRS 3.1.3.c)
-  if (!user || (user.role !== 'admin' && user.role !== 'staff')) {
-    root.innerHTML = `
-      <section class="panel">
-        <h2>Email templates</h2>
-        <p class="muted">Access Forbidden.</p>
-      </section>
-    `;
+  if (!user) {
+    root.innerHTML = '<p>Please log in.</p>';
     return;
   }
 
-  const templates = await getTemplates();
+  const displayName = user.fullName || user.name || 'User';
+  const imgSrc = user.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}`;
 
   root.innerHTML = `
-    <section class="panel">
-      <h2>Email templates</h2>
-      <p class="muted" style="margin-top:.4rem">
-        Manage system email content. Placeholders like <code>{{name}}</code> are replaced automatically.
-      </p>
+    <section class="panel" style="max-width:600px; margin:0 auto; text-align:center">
+      <div style="margin:1.5rem 0">
+        <img src="${imgSrc}" alt="Profile" style="width:100px; height:100px; border-radius:50%; border:4px solid var(--line); object-fit:cover">
+        <h2 style="margin:0.5rem 0 0">${displayName}</h2>
+        <span class="badge b-ok" style="text-transform:capitalize">${user.role}</span>
+      </div>
 
-      <form id="tplForm" style="margin-top:1rem; display:flex; flex-direction:column; gap:1rem">
-        ${templates.map(t => `
-          <div class="panel" style="padding:0.9rem 1rem; border:1px solid var(--line)">
-            <h3 style="margin:0 0 .4rem">${t.name}</h3>
-            <label style="display:block; margin-bottom:.4rem">
-              <span class="muted" style="font-size:.85rem">Subject</span>
-              <input type="text" name="subject-${t.id}" value="${t.subject.replace(/"/g, '&quot;')}" style="width:100%;margin-top:.15rem">
-            </label>
-            <label style="display:block">
-              <span class="muted" style="font-size:.85rem">Body</span>
-              <textarea name="body-${t.id}" rows="4" style="width:100%;margin-top:.15rem">${t.body}</textarea>
-            </label>
-          </div>
-        `).join('')}
-        <div class="tools" style="margin-top:.5rem">
-          <button class="primary" type="submit">Save All Changes</button>
-          <span id="msg" class="muted"></span>
+      <form id="profileForm" style="text-align:left">
+        <div class="grid two" style="grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem">
+          <label style="display:block">
+            <span class="muted" style="font-size:.85rem">Email</span>
+            <input id="pEmail" type="email" class="tools" style="width:100%; margin-top:.25rem" value="${user.email}" disabled required>
+          </label>
+          
+          <label style="display:block">
+            <span class="muted" style="font-size:.85rem">Phone</span>
+            <input id="pPhone" type="tel" class="tools" style="width:100%; margin-top:.25rem" value="${user.phone || ''}" maxlength="14" disabled required>
+          </label>
         </div>
+
+        <div class="grid two" style="grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem">
+           <label style="display:block">
+            <span class="muted" style="font-size:.85rem">Health Care #</span>
+            <input id="pHC" type="text" class="tools" style="width:100%; margin-top:.25rem" value="${user.healthCareNumber || ''}" maxlength="11" disabled required>
+          </label>
+           <label style="display:block">
+            <span class="muted" style="font-size:.85rem">Date of Birth</span>
+            <input id="pDob" type="date" class="tools" style="width:100%; margin-top:.25rem" value="${user.dateOfBirth ? user.dateOfBirth.split('T')[0] : ''}" disabled required>
+          </label>
+        </div>
+
+        <div class="grid two" style="grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem">
+             <label style="display:block">
+                <span class="muted" style="font-size:.85rem">Preferred Unit</span>
+                <select id="pUnit" class="tools" style="width:100%; margin-top:.25rem" disabled>
+                    <option value="mg/dL" ${user.preferredUnit === 'mg/dL' ? 'selected' : ''}>mg/dL</option>
+                    <option value="mmol/L" ${user.preferredUnit === 'mmol/L' ? 'selected' : ''}>mmol/L</option>
+                </select>
+            </label>
+            
+            <label style="display:block">
+                <span class="muted" style="font-size:.85rem">Profile Image URL</span>
+                <input id="pImg" type="url" class="tools" style="width:100%; margin-top:.25rem" value="${user.profileImage || ''}" placeholder="https://..." disabled>
+            </label>
+        </div>
+
+        ${user.role === 'patient' ? `
+        <div class="panel" style="margin-top:1rem; background:#f8fafc; border:1px solid var(--line)">
+            <h4 style="margin:0 0 0.5rem">Assigned Specialist ID</h4>
+            <div>${user.assignedSpecialistId || 'Not Assigned'}</div>
+        </div>
+        ` : ''}
+
+        <div style="margin-top:1.5rem; text-align:right">
+            <button type="button" id="editBtn">Edit Profile</button>
+            <button type="submit" id="saveBtn" class="primary" style="display:none">Save Changes</button>
+        </div>
+        <p id="pMsg" class="muted" style="text-align:center; margin-top:0.5rem; color:var(--bad)"></p>
       </form>
     </section>
   `;
 
-  const form = root.querySelector('#tplForm');
-  const msg  = root.querySelector('#msg');
+  const form = root.querySelector('#profileForm');
+  const editBtn = root.querySelector('#editBtn');
+  const saveBtn = root.querySelector('#saveBtn');
+  const msg = root.querySelector('#pMsg');
+  const inputs = ['pEmail', 'pPhone', 'pHC', 'pDob', 'pImg', 'pUnit'].map(id => root.querySelector('#'+id));
+  
+  const dobInput = root.querySelector('#pDob');
+  const today = new Date().toISOString().split('T')[0];
+  dobInput.setAttribute('max', today);
+  dobInput.setAttribute('min', '1900-01-01');
 
-  form.onsubmit = async e=>{
-    e.preventDefault();
-    msg.textContent = 'Saving...';
+  // Input Masking Logic (HC Number)
+  const hcInput = root.querySelector('#pHC');
+  hcInput.addEventListener('input', (e) => {
+    let v = e.target.value.replace(/\D/g, ''); 
+    if (v.length > 9) v = v.slice(0, 9);
+    if (v.length > 6) v = v.slice(0,3) + '-' + v.slice(3,6) + '-' + v.slice(6);
+    else if (v.length > 3) v = v.slice(0,3) + '-' + v.slice(3);
+    e.target.value = v;
+  });
 
-    const data = templates.map(t => {
-      return { 
-          ...t, 
-          subject: form[`subject-${t.id}`].value,
-          body: form[`body-${t.id}`].value 
+  // Input Masking Logic (Phone)
+  const phoneInput = root.querySelector('#pPhone');
+  phoneInput.addEventListener('input', (e) => {
+    let v = e.target.value.replace(/\D/g, '');
+    if (v.length > 10) v = v.slice(0, 10);
+    if (v.length > 6) v = v.slice(0,3) + '-' + v.slice(3,6) + '-' + v.slice(6);
+    else if (v.length > 3) v = v.slice(0,3) + '-' + v.slice(3);
+    e.target.value = v;
+  });
+
+  editBtn.onclick = () => {
+      inputs.forEach(i => i.disabled = false);
+      editBtn.style.display = 'none';
+      saveBtn.style.display = 'inline-block';
+      msg.textContent = 'You can now edit your details.';
+      msg.style.color = 'var(--muted)';
+  };
+
+  form.onsubmit = async (e) => {
+      e.preventDefault();
+      msg.textContent = 'Saving...';
+      msg.style.color = 'var(--muted)';
+
+      // Validation
+      const hcRaw = hcInput.value.replace(/-/g, '');
+      if (hcRaw.length !== 9) {
+        msg.textContent = "Health Care Number must be 9 digits.";
+        msg.style.color = "red";
+        return;
+      }
+      const phoneRaw = phoneInput.value.replace(/\D/g, '');
+      if (phoneRaw.length < 10) {
+        msg.textContent = "Phone number must be at least 10 digits.";
+        msg.style.color = "red";
+        return;
+      }
+      
+      const payload = {
+          email: root.querySelector('#pEmail').value,
+          phone: phoneInput.value,
+          healthCareNumber: hcInput.value,
+          dateOfBirth: dobInput.value,
+          profileImage: root.querySelector('#pImg').value,
+          preferredUnit: root.querySelector('#pUnit').value // <--- Important!
       };
-    });
+      
+      const r = await fetch(`/api/patients/${user.id}`, {
+          method: 'PUT',
+          headers: { 
+              'Content-Type': 'application/json',
+              'x-csrf-token': store.csrfToken 
+          },
+          body: JSON.stringify(payload)
+      });
 
-    await saveTemplates(data);
-    msg.textContent = 'Saved ✓';
+      if (r.ok) {
+          msg.textContent = 'Saved ✓. Please re-login to see changes.';
+          msg.style.color = 'var(--ok)';
+          inputs.forEach(i => i.disabled = true);
+          saveBtn.style.display = 'none';
+          editBtn.style.display = 'inline-block';
+      } else {
+          msg.textContent = 'Error saving profile.';
+          msg.style.color = 'var(--bad)';
+      }
   };
 }

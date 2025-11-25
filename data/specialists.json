@@ -5,10 +5,10 @@
     "phone": "555-0102",
     "workingID": "DOC001",
     "fieldOfSpecialization": "Endocrinology",
-    "passwordHash": "2e5aa6c383dc9f5adb84252beaa2202b3a19c8d890ccc8a35b86cf7d254d389e:c6931103556f6f639ccc793e13f565456f6ea27461f773e6b94161ec93bf6013c1d1155647691e762dfdeb50b2316fa30463171a603a6e248f14a2e273210dcf",
+    "passwordHash": "0cb30fb6d856dcba7a2a568dab4a1a270881e9815e9488d0c1a37fbcc8e28209:8e710aeca886770aa7bbc37c23326fb26a7881f50c5c33c6a7b9a54380598cdc0ebf34ab51fa094da7ba47da644c3d2dea5a006153c705865dc0f20f35e5bfd5",
     "id": 1,
-    "createdAt": "2025-11-24T09:12:32.638Z",
-    "updatedAt": "2025-11-24T09:12:32.638Z"
+    "createdAt": "2025-11-25T05:43:37.273Z",
+    "updatedAt": "2025-11-25T05:43:37.273Z"
   },
   {
     "fullName": "Dr. Sarah Chen",
@@ -16,9 +16,21 @@
     "phone": "555-0103",
     "workingID": "DOC002",
     "fieldOfSpecialization": "Internal Medicine",
-    "passwordHash": "2e5aa6c383dc9f5adb84252beaa2202b3a19c8d890ccc8a35b86cf7d254d389e:c6931103556f6f639ccc793e13f565456f6ea27461f773e6b94161ec93bf6013c1d1155647691e762dfdeb50b2316fa30463171a603a6e248f14a2e273210dcf",
+    "passwordHash": "0cb30fb6d856dcba7a2a568dab4a1a270881e9815e9488d0c1a37fbcc8e28209:8e710aeca886770aa7bbc37c23326fb26a7881f50c5c33c6a7b9a54380598cdc0ebf34ab51fa094da7ba47da644c3d2dea5a006153c705865dc0f20f35e5bfd5",
     "id": 2,
-    "createdAt": "2025-11-24T09:12:32.641Z",
-    "updatedAt": "2025-11-24T09:12:32.641Z"
+    "createdAt": "2025-11-25T05:43:37.278Z",
+    "updatedAt": "2025-11-25T05:43:37.278Z"
+  },
+  {
+    "fullName": "Rahu",
+    "email": "testF@gmail.com",
+    "phone": "scasc",
+    "workingID": "as",
+    "passwordHash": "ecd415d593b7ada744177d059afc10ef08f55e195915d4294e368da6ecbb5b44:6061a63efc9642f5fa3cbd4e7bdd44da56c8f4714b21df339a8bcea8e324102cac028938a85b89baa64246e9179aa2053ea0a2dcec375dc726ef51d0188bde38",
+    "fieldOfSpecialization": null,
+    "profileImage": "https://ui-avatars.com/api/?name=Rahu&background=random",
+    "id": 3,
+    "createdAt": "2025-11-25T05:56:58.846Z",
+    "updatedAt": "2025-11-25T05:56:58.846Z"
   }
 ]

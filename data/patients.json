@@ -6,11 +6,11 @@
     "healthCareNumber": "HC123456",
     "dateOfBirth": "1985-03-15",
     "preferredUnit": "mg/dL",
-    "passwordHash": "2e5aa6c383dc9f5adb84252beaa2202b3a19c8d890ccc8a35b86cf7d254d389e:c6931103556f6f639ccc793e13f565456f6ea27461f773e6b94161ec93bf6013c1d1155647691e762dfdeb50b2316fa30463171a603a6e248f14a2e273210dcf",
-    "registrationDate": "2025-11-24T09:12:32.646Z",
+    "passwordHash": "0cb30fb6d856dcba7a2a568dab4a1a270881e9815e9488d0c1a37fbcc8e28209:8e710aeca886770aa7bbc37c23326fb26a7881f50c5c33c6a7b9a54380598cdc0ebf34ab51fa094da7ba47da644c3d2dea5a006153c705865dc0f20f35e5bfd5",
+    "registrationDate": "2025-11-25T05:43:37.283Z",
     "id": 1,
-    "createdAt": "2025-11-24T09:12:32.646Z",
-    "updatedAt": "2025-11-24T09:12:32.646Z"
+    "createdAt": "2025-11-25T05:43:37.283Z",
+    "updatedAt": "2025-11-25T05:43:37.283Z"
   },
   {
     "fullName": "Bhavni Rampal",
@@ -19,11 +19,11 @@
     "healthCareNumber": "HC123457",
     "dateOfBirth": "1990-07-22",
     "preferredUnit": "mmol/L",
-    "passwordHash": "2e5aa6c383dc9f5adb84252beaa2202b3a19c8d890ccc8a35b86cf7d254d389e:c6931103556f6f639ccc793e13f565456f6ea27461f773e6b94161ec93bf6013c1d1155647691e762dfdeb50b2316fa30463171a603a6e248f14a2e273210dcf",
-    "registrationDate": "2025-11-24T09:12:32.650Z",
+    "passwordHash": "0cb30fb6d856dcba7a2a568dab4a1a270881e9815e9488d0c1a37fbcc8e28209:8e710aeca886770aa7bbc37c23326fb26a7881f50c5c33c6a7b9a54380598cdc0ebf34ab51fa094da7ba47da644c3d2dea5a006153c705865dc0f20f35e5bfd5",
+    "registrationDate": "2025-11-25T05:43:37.288Z",
     "id": 2,
-    "createdAt": "2025-11-24T09:12:32.650Z",
-    "updatedAt": "2025-11-24T09:12:32.650Z"
+    "createdAt": "2025-11-25T05:43:37.288Z",
+    "updatedAt": "2025-11-25T05:43:37.288Z"
   },
   {
     "fullName": "Rahul Chauhan",
@@ -32,10 +32,25 @@
     "healthCareNumber": "HC123458",
     "dateOfBirth": "1988-11-30",
     "preferredUnit": "mg/dL",
-    "passwordHash": "2e5aa6c383dc9f5adb84252beaa2202b3a19c8d890ccc8a35b86cf7d254d389e:c6931103556f6f639ccc793e13f565456f6ea27461f773e6b94161ec93bf6013c1d1155647691e762dfdeb50b2316fa30463171a603a6e248f14a2e273210dcf",
-    "registrationDate": "2025-11-24T09:12:32.653Z",
+    "passwordHash": "0cb30fb6d856dcba7a2a568dab4a1a270881e9815e9488d0c1a37fbcc8e28209:8e710aeca886770aa7bbc37c23326fb26a7881f50c5c33c6a7b9a54380598cdc0ebf34ab51fa094da7ba47da644c3d2dea5a006153c705865dc0f20f35e5bfd5",
+    "registrationDate": "2025-11-25T05:43:37.292Z",
     "id": 3,
-    "createdAt": "2025-11-24T09:12:32.653Z",
-    "updatedAt": "2025-11-24T09:12:32.653Z"
+    "createdAt": "2025-11-25T05:43:37.292Z",
+    "updatedAt": "2025-11-25T05:43:37.292Z"
+  },
+  {
+    "fullName": "Test final",
+    "email": "testf@test.com",
+    "passwordHash": "fce464fcf6da8b487baf7cca7e9404e83b90647ed395e031b3ac824c70b0556d:91036ed9e176ade20637cfe1fcb5101f7d238ea371172a1e883d46c33cbf6e81ca29877c94351f250ef2db8ac19245212afcea64f90ba36579cde143e92ff343",
+    "healthCareNumber": "999-999-999",
+    "dateOfBirth": "2025-11-24",
+    "phone": "+1 777-777-7777",
+    "assignedSpecialistId": 1,
+    "preferredUnit": "mg/dL",
+    "profileImage": "https://ui-avatars.com/api/?name=Test%20final&background=random",
+    "registrationDate": "2025-11-25T05:44:12.523Z",
+    "id": 4,
+    "createdAt": "2025-11-25T05:44:12.523Z",
+    "updatedAt": "2025-11-25T05:47:42.894Z"
   }
 ]

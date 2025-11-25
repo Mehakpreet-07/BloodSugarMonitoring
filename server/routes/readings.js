@@ -7,7 +7,6 @@ const { sendAbnormalReadingAlertEmails } = require('../utils/notifications');
 // GET Readings
 async function getReadings(req, res) {
   try {
-    // SRS 3.1.3.a: Staff cannot view medical data
     if (req.user.role === 'staff') {
         return res.status(403).json({ ok: false, error: 'Staff cannot view medical data' });
     }
@@ -77,23 +76,25 @@ async function createReading(req, res) {
        }
     }
 
+    // FIX: Use 'valMg' here instead of 'valueMgPerdL'
     await db.insert('auditLogs', {
       actorType: req.user.role,
       actorId: req.user.id,
       actionType: 'reading_created',
       resourceType: 'Reading',
       resourceId: reading.id,
-      details: `Created reading: ${valueMgPerdL} mg/dL (${category})`,
+      details: `Created reading: ${valMg} mg/dL (${category})`, 
       createdAt: new Date().toISOString()
     });
 
     res.json({ ok: true, reading });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ ok: false, error: err.message });
   }
 }
 
-// UPDATE Reading (Fixed to handle new fields)
+// UPDATE Reading
 async function updateReading(req, res) {
   try {
     const readingId = parseInt(req.params.id);
@@ -115,7 +116,6 @@ async function updateReading(req, res) {
       updates.category = categorizeReading(valMg, thresholds);
     }
     
-    // Update specific fields (food, event, symptom)
     if (foodIntake !== undefined) updates.foodIntake = foodIntake;
     if (eventActivity !== undefined) updates.eventActivity = eventActivity;
     if (symptoms !== undefined) updates.symptoms = symptoms;
@@ -135,8 +135,6 @@ async function updateReading(req, res) {
     });
 
     const updated = await db.findById('readings', readingId);
-    
-    // Convert for response
     const patient = await db.findById('patients', updated.patientId);
     const prefUnit = patient?.preferredUnit || 'mg/dL';
     

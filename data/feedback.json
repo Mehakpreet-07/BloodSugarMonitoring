@@ -4,8 +4,17 @@
     "specialistId": 1,
     "comment": "Your readings show high blood sugar after consuming sugary foods. Please reduce carbohydrate intake and monitor closely.",
     "language": "en",
-    "createdAt": "2025-11-23T09:12:32.656Z",
+    "createdAt": "2025-11-24T05:43:37.296Z",
     "id": 1,
-    "updatedAt": "2025-11-24T09:12:32.773Z"
+    "updatedAt": "2025-11-25T05:43:37.391Z"
+  },
+  {
+    "patientId": 4,
+    "specialistId": 1,
+    "comment": "Oye paplu teri reading high ho rhi nhaiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    "language": "en",
+    "createdAt": "2025-11-25T05:51:34.794Z",
+    "id": 2,
+    "updatedAt": "2025-11-25T05:51:34.794Z"
   }
 ]

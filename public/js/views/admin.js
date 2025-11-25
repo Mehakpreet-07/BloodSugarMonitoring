@@ -6,7 +6,6 @@ export async function renderAdmin(root) {
         return;
     }
 
-    // Fetch All Data Needed
     const [usersRes, logsRes] = await Promise.all([
         fetch('/api/admin/users').then(r=>r.json()),
         fetch('/api/audit-logs').then(r=>r.json())
@@ -28,31 +27,30 @@ export async function renderAdmin(root) {
                     <h3>All Users</h3>
                     <div style="overflow-x:auto">
                         <table class="list">
-                            <thead><tr><th>Role</th><th>Name</th><th>Action</th></tr></thead>
+                            <thead><tr><th>Role</th><th>Name</th><th>Email</th><th>Action</th></tr></thead>
                             <tbody>
                                 ${users.map(u => `
                                     <tr>
                                         <td><span class="badge">${u.role}</span></td>
                                         <td>${u.fullName}</td>
-                                        <td>${u.role !== 'admin' ? `<button class="del-btn" data-role="${u.role}" data-id="${u.id}" style="color:red;border:1px solid red;border-radius:4px">Del</button>` : ''}</td>
+                                        <td>${u.email}</td>
+                                        <td>${u.role !== 'admin' ? `<button class="del-btn" data-role="${u.role}" data-id="${u.id}" style="color:red;border:1px solid red;border-radius:4px;cursor:pointer">Del</button>` : '-'}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
                         </table>
                     </div>
                 </section>
-                <section class="panel">
-                    <h3>Create Account</h3>
-                    <form id="createForm" style="display:grid; gap:0.8rem">
-                        <select id="newRole">
-                            <option value="specialist">Specialist</option>
-                            <option value="staff">Staff</option>
-                        </select>
-                        <input id="newName" placeholder="Full Name" required>
-                        <input id="newEmail" placeholder="Email" required>
-                        <input id="newPhone" placeholder="Phone" required>
-                        <input id="newWorkId" placeholder="Working ID" required>
-                        <input id="newPwd" type="password" placeholder="Password" required>
+
+                <section class="panel" style="position:sticky; top:1rem">
+                    <h3>Create Professional Account</h3>
+                    <form id="createForm" style="display:grid; gap:0.8rem; margin-top:1rem">
+                        <select id="newRole" style="width:100%"><option value="specialist">Specialist</option><option value="staff">Staff</option></select>
+                        <input id="newName" placeholder="Full Name" required style="width:100%">
+                        <input id="newEmail" placeholder="Email" required style="width:100%">
+                        <input id="newPhone" placeholder="Phone" required style="width:100%">
+                        <input id="newWorkId" placeholder="Working ID" required style="width:100%">
+                        <input id="newPwd" type="password" placeholder="Password" required style="width:100%">
                         <button class="primary">Create</button>
                         <p id="formMsg" class="muted"></p>
                     </form>
@@ -68,87 +66,40 @@ export async function renderAdmin(root) {
                     <input type="date" id="repEnd" required>
                     <button class="primary">Generate</button>
                 </form>
-                <div id="repOutput" style="margin-top:1rem; padding:1rem; background:#f8f9fa; border:1px solid #ddd; display:none"></div>
+                <div id="repOutput" style="margin-top:1rem; display:none; padding:1rem; border:1px solid #ddd"></div>
             </section>
         </div>
 
         <div id="viewLogs" style="display:none">
             <section class="panel">
-                <h3>System Audit Logs</h3>
-                <div style="overflow-x:auto; max-height:500px; overflow-y:auto">
-                    <table class="list">
-                        <thead><tr><th>Time</th><th>Action</th><th>Details</th><th>Actor</th></tr></thead>
-                        <tbody>
-                            ${logs.map(l => `
-                                <tr>
-                                    <td style="font-size:0.8rem">${new Date(l.createdAt).toLocaleString()}</td>
-                                    <td><strong>${l.actionType}</strong></td>
-                                    <td>${l.details}</td>
-                                    <td>${l.actorType}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
+                <h3>Audit Logs</h3>
+                <table class="list">
+                    <thead><tr><th>Time</th><th>Action</th><th>Details</th></tr></thead>
+                    <tbody>
+                        ${logs.slice(0,20).map(l => `<tr><td>${new Date(l.createdAt).toLocaleString()}</td><td>${l.actionType}</td><td>${l.details}</td></tr>`).join('')}
+                    </tbody>
+                </table>
             </section>
         </div>
     `;
 
-    // Tab Logic
-    const tabs = {
-        tabUsers: 'viewUsers',
-        tabReports: 'viewReports',
-        tabLogs: 'viewLogs'
-    };
-
+    // Tab Switching
+    const tabs = { tabUsers: 'viewUsers', tabReports: 'viewReports', tabLogs: 'viewLogs' };
     Object.keys(tabs).forEach(btnId => {
         root.querySelector('#'+btnId).onclick = () => {
-            Object.keys(tabs).forEach(id => {
-                root.querySelector('#'+id).classList.remove('primary');
-                document.getElementById(tabs[id]).style.display = 'none';
+            Object.keys(tabs).forEach(k => {
+                root.querySelector('#'+k).classList.remove('primary');
+                document.getElementById(tabs[k]).style.display = 'none';
             });
             root.querySelector('#'+btnId).classList.add('primary');
             document.getElementById(tabs[btnId]).style.display = 'block';
         };
     });
 
-    // Report Logic
-    root.querySelector('#repForm').onsubmit = async (e) => {
-        e.preventDefault();
-        const start = root.querySelector('#repStart').value;
-        const end = root.querySelector('#repEnd').value;
-        
-        const r = await fetch('/api/reports', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json', 'x-csrf-token': store.csrfToken},
-            body: JSON.stringify({ periodStart: start, periodEnd: end, reportType: 'Custom' })
-        });
-        const d = await r.json();
-        
-        const out = document.getElementById('repOutput');
-        out.style.display = 'block';
-        if(d.ok) {
-            const rep = d.report;
-            out.innerHTML = `
-                <h4>Report Generated (${rep.periodStart.split('T')[0]} to ${rep.periodEnd.split('T')[0]})</h4>
-                <p><strong>Total Patients:</strong> ${rep.numberOfPatients}</p>
-                <p><strong>Readings Analyzed:</strong> ${rep.totalReadings}</p>
-                <p><strong>Avg Glucose:</strong> ${rep.avgBloodSugarMg} mg/dL</p>
-                <hr>
-                <p><strong>Top Triggers Identified (High Glucose):</strong></p>
-                <ul>
-                    ${rep.foodActivityTriggers.topTriggersHigh.map(t => `<li>${t.trigger} (${t.correlation}% correlation)</li>`).join('') || '<li>None detected</li>'}
-                </ul>
-            `;
-        } else {
-            out.textContent = 'Error: ' + d.error;
-        }
-    };
-
-    // User Management Logic (Same as before)
+    // Delete User
     root.querySelectorAll('.del-btn').forEach(btn => {
         btn.onclick = async () => {
-            if(!confirm('Delete user?')) return;
+            if(!confirm('Delete User?')) return;
             const role = btn.getAttribute('data-role');
             const id = btn.getAttribute('data-id');
             await fetch(`/api/admin/users/${role}/${id}`, { method: 'DELETE', headers: {'x-csrf-token': store.csrfToken} });
@@ -156,6 +107,7 @@ export async function renderAdmin(root) {
         };
     });
 
+    // Create User
     root.querySelector('#createForm').onsubmit = async (e) => {
         e.preventDefault();
         const payload = {
@@ -166,12 +118,21 @@ export async function renderAdmin(root) {
             workingID: root.querySelector('#newWorkId').value,
             password: root.querySelector('#newPwd').value
         };
-        const res = await fetch('/api/admin/create', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json', 'x-csrf-token': store.csrfToken},
-            body: JSON.stringify(payload)
-        });
+        const res = await fetch('/api/admin/create', { method:'POST', headers:{'Content-Type':'application/json', 'x-csrf-token':store.csrfToken}, body:JSON.stringify(payload)});
         if(res.ok) renderAdmin(root);
         else root.querySelector('#formMsg').textContent = 'Error creating user';
+    };
+    
+    // Report
+    root.querySelector('#repForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const start = root.querySelector('#repStart').value;
+        const end = root.querySelector('#repEnd').value;
+        const r = await fetch('/api/reports', { method:'POST', headers:{'Content-Type':'application/json', 'x-csrf-token':store.csrfToken}, body:JSON.stringify({periodStart:start, periodEnd:end}) });
+        const d = await r.json();
+        const out = document.getElementById('repOutput');
+        out.style.display = 'block';
+        if(d.ok) out.innerHTML = `<strong>Report Generated:</strong> ${d.report.numberOfPatients} Patients Active.`;
+        else out.textContent = d.error;
     };
 }

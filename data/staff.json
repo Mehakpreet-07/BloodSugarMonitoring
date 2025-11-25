@@ -4,9 +4,9 @@
     "email": "staff@demo.test",
     "phone": "555-0101",
     "workingID": "STAFF001",
-    "passwordHash": "2e5aa6c383dc9f5adb84252beaa2202b3a19c8d890ccc8a35b86cf7d254d389e:c6931103556f6f639ccc793e13f565456f6ea27461f773e6b94161ec93bf6013c1d1155647691e762dfdeb50b2316fa30463171a603a6e248f14a2e273210dcf",
+    "passwordHash": "0cb30fb6d856dcba7a2a568dab4a1a270881e9815e9488d0c1a37fbcc8e28209:8e710aeca886770aa7bbc37c23326fb26a7881f50c5c33c6a7b9a54380598cdc0ebf34ab51fa094da7ba47da644c3d2dea5a006153c705865dc0f20f35e5bfd5",
     "id": 1,
-    "createdAt": "2025-11-24T09:12:32.634Z",
-    "updatedAt": "2025-11-24T09:12:32.634Z"
+    "createdAt": "2025-11-25T05:43:37.269Z",
+    "updatedAt": "2025-11-25T05:43:37.269Z"
   }
 ]

@@ -1,24 +1,112 @@
 [
   {
-    "sessionId": "b5471e130510213f3545df3b52649991362e5817b9d74bada71593edd3059198",
-    "userId": 1,
+    "sessionId": "6d29001d9dd74da4932dd82586b2c17fe79cdd20fafb2f9819c2468df2f9da45",
+    "userId": 4,
     "role": "patient",
-    "csrfToken": "d30742d921ce50fc116b935506880beb",
-    "active": false,
-    "expiresAt": "2025-11-24T09:59:36.660Z",
-    "createdAt": "2025-11-24T09:13:29.337Z",
+    "csrfToken": "cd66b938089409aab70a6f47b86f433b",
+    "active": true,
+    "expiresAt": "2025-11-25T06:14:16.876Z",
     "id": 1,
-    "updatedAt": "2025-11-24T09:29:43.998Z"
+    "createdAt": "2025-11-25T05:44:16.876Z",
+    "updatedAt": "2025-11-25T05:44:16.876Z"
   },
   {
-    "sessionId": "0383e56ea5210fdbc449da9a5b0e1116dbaeed45a876a4a3ce20ab355b35905b",
+    "sessionId": "6a593ae697e86c3125d52b917d94636d2f1e2633c6b508d77a4b8f3f9ff2925e",
+    "userId": 4,
+    "role": "patient",
+    "csrfToken": "3225f663e8017fc039d4f884594df5eb",
+    "active": true,
+    "expiresAt": "2025-11-25T06:17:14.024Z",
+    "id": 2,
+    "createdAt": "2025-11-25T05:47:14.024Z",
+    "updatedAt": "2025-11-25T05:47:14.024Z"
+  },
+  {
+    "sessionId": "f3a1caa20ed80f88771bc22fe5a34203530fa9f0d1924114ee4b3da88b91efa1",
+    "userId": 1,
+    "role": "specialist",
+    "csrfToken": "120eaccc7acd5d15e5bd8dad394a7833",
+    "active": true,
+    "expiresAt": "2025-11-25T06:18:15.868Z",
+    "id": 3,
+    "createdAt": "2025-11-25T05:48:15.868Z",
+    "updatedAt": "2025-11-25T05:48:15.868Z"
+  },
+  {
+    "sessionId": "9d0624458d5994d120e49eb7e1744951f2e0f90ec448f1d838678c297b669aaa",
+    "userId": 4,
+    "role": "patient",
+    "csrfToken": "93546b04016022c0027cc0b9a06ba51b",
+    "active": true,
+    "expiresAt": "2025-11-25T06:21:57.268Z",
+    "id": 4,
+    "createdAt": "2025-11-25T05:51:57.268Z",
+    "updatedAt": "2025-11-25T05:51:57.268Z"
+  },
+  {
+    "sessionId": "69ce9ae841903f99aecd6427e1bd6ceb712d9af21471c3db6840b653d93d9c04",
+    "userId": 1,
+    "role": "specialist",
+    "csrfToken": "859e11f0db251661e73a7f3b96b447da",
+    "active": true,
+    "expiresAt": "2025-11-25T06:23:30.330Z",
+    "id": 5,
+    "createdAt": "2025-11-25T05:53:30.330Z",
+    "updatedAt": "2025-11-25T05:53:30.330Z"
+  },
+  {
+    "sessionId": "3b98363a9c0fcb957cdc879d6f8a85600a1b2305939fa7cc788031ee5b90b568",
+    "userId": 4,
+    "role": "patient",
+    "csrfToken": "1ee7c54b8744bd8a8154660f79d71b58",
+    "active": true,
+    "expiresAt": "2025-11-25T06:24:03.370Z",
+    "id": 6,
+    "createdAt": "2025-11-25T05:54:03.370Z",
+    "updatedAt": "2025-11-25T05:54:03.370Z"
+  },
+  {
+    "sessionId": "1fbf896da58bdff11a75f23ee220df5331a74b24d0c858c974d54761b5d841a0",
+    "userId": 1,
+    "role": "specialist",
+    "csrfToken": "7226da02dbb7662fe8086f93bda004f6",
+    "active": true,
+    "expiresAt": "2025-11-25T06:25:43.031Z",
+    "id": 7,
+    "createdAt": "2025-11-25T05:55:43.031Z",
+    "updatedAt": "2025-11-25T05:55:43.031Z"
+  },
+  {
+    "sessionId": "0cfa8aaa4b8e83ea9035d9340e43373a979b9f7f3413285c82a6ddc76a805ba8",
     "userId": 1,
     "role": "admin",
-    "csrfToken": "e791ef23b90387da6a7c53ec06d42820",
+    "csrfToken": "f2b3529e81db71532bb63b78793888f1",
     "active": true,
-    "expiresAt": "2025-11-24T09:59:55.318Z",
-    "createdAt": "2025-11-24T09:29:55.318Z",
-    "id": 2,
-    "updatedAt": "2025-11-24T09:29:55.318Z"
+    "expiresAt": "2025-11-25T06:26:25.534Z",
+    "id": 8,
+    "createdAt": "2025-11-25T05:56:25.534Z",
+    "updatedAt": "2025-11-25T05:56:25.534Z"
+  },
+  {
+    "sessionId": "379847c6b5cbd89797a33e52c1003f2f54e5438ed5e56122fc9b886eb6f9ca13",
+    "userId": 1,
+    "role": "specialist",
+    "csrfToken": "efc158fd4376481722fed499b0beb907",
+    "active": true,
+    "expiresAt": "2025-11-25T06:28:28.089Z",
+    "id": 9,
+    "createdAt": "2025-11-25T05:58:28.089Z",
+    "updatedAt": "2025-11-25T05:58:28.089Z"
+  },
+  {
+    "sessionId": "4cd98c3e72ede1b8c0c45892c38d42b05dcd4a2407885578e09ae502d8585f5f",
+    "userId": 1,
+    "role": "staff",
+    "csrfToken": "67e3b7d351e4040b5168921262cc490e",
+    "active": true,
+    "expiresAt": "2025-11-25T06:28:41.385Z",
+    "id": 10,
+    "createdAt": "2025-11-25T05:58:41.385Z",
+    "updatedAt": "2025-11-25T05:58:41.385Z"
   }
 ]

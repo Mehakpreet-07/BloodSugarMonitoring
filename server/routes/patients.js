@@ -1,4 +1,4 @@
-// server/routes/patients.js (Full content)
+// server/routes/patients.js
 const { db } = require('../storage/db');
 const { analyzePatterns, generateInsights } = require('../utils/ai');
 const { fromMgdL } = require('../utils/helpers');
@@ -9,37 +9,38 @@ async function getPatients(req, res) {
     if (req.user.role === 'specialist') {
         query.assignedSpecialistId = req.user.id;
     }
-    // Staff CAN see this list (Demographics only), so no blocking here.
 
     const patients = await db.find('patients', query);
 
     const patientList = await Promise.all(patients.map(async p => {
-      // Staff shouldn't really see 'lastReading' medical data, but for list view it's often acceptable.
-      // If strict compliance needed, hide 'last' and 'cat' for staff.
       const isStaff = req.user.role === 'staff';
-      
       const readings = await db.find('readings', { patientId: p.id });
       let lastReading = 'No readings yet';
       let category = 'Unknown';
       
-      if (!isStaff && readings && readings.length > 0) {
+      if (readings && readings.length > 0) {
         readings.sort((a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime());
         const mostRecent = readings[0];
         
         const date = new Date(mostRecent.recordedAt);
         const diffDays = Math.floor((new Date() - date) / 86400000);
-        lastReading = diffDays === 0 ? 'Today' : `${diffDays} days ago`;
         
-        const sevenDaysAgo = Date.now() - (7 * 86400000);
-        const recentReadings = readings.filter(r => new Date(r.recordedAt).getTime() >= sevenDaysAgo);
-        const abnormalCount = recentReadings.filter(r => r.category && r.category.includes('Abnormal')).length;
+        if (diffDays === 0) lastReading = 'Today';
+        else if (diffDays === 1) lastReading = 'Yesterday';
+        else lastReading = `${diffDays} days ago`;
         
-        if (abnormalCount >= 3) category = 'Abnormal';
-        else if (abnormalCount > 0) category = 'Borderline';
-        else category = 'Normal';
-      } else if (isStaff) {
-          lastReading = 'Restricted';
-          category = 'Hidden';
+        if (!isStaff) {
+            // Simple status logic for list view
+            const sevenDaysAgo = Date.now() - (7 * 86400000);
+            const recent = readings.filter(r => new Date(r.recordedAt).getTime() >= sevenDaysAgo);
+            const abnormal = recent.filter(r => r.category && r.category.includes('Abnormal')).length;
+            if (abnormal >= 3) category = 'Abnormal';
+            else if (abnormal > 0) category = 'Borderline';
+            else category = 'Normal';
+        } else {
+            lastReading = 'Restricted';
+            category = 'Hidden';
+        }
       }
       
       return {
@@ -75,7 +76,6 @@ async function getPatient(req, res) {
 
 async function getPatientDashboard(req, res) {
   try {
-    // SRS 3.1.3.a: Block Staff
     if (req.user.role === 'staff') {
         return res.status(403).json({ ok: false, error: 'Staff cannot view patient dashboards' });
     }
@@ -93,7 +93,10 @@ async function getPatientDashboard(req, res) {
 
     const stats = { count: recentReadings.length, unit: patient.preferredUnit || 'mg/dL' }; 
     const thresholds = await db.findOne('thresholdSettings', { active: true });
-    const analysis = analyzePatterns(recentReadings, thresholds || { normalMax: 140, abnormalMinMg: 0 }); 
+    
+    // Default fallback if thresholds missing
+    const safeThr = thresholds || { normalMax: 140, borderlineMax: 180, abnormalMinMg: 0, abnormalMaxMg: 70 };
+    const analysis = analyzePatterns(recentReadings, safeThr); 
     const insights = generateInsights(analysis);
 
     return res.status(200).json({
@@ -113,7 +116,6 @@ async function getPatientDashboard(req, res) {
 async function updatePatient(req, res) {
   try {
     const patientId = parseInt(req.params.id);
-    // Allow Patient (Self), Admin, Staff
     if (req.user.role === 'patient' && patientId !== req.user.patientId) {
       return res.status(403).json({ ok: false, error: 'Access forbidden' });
     }
@@ -127,6 +129,10 @@ async function updatePatient(req, res) {
     if (req.body.phone) updates.phone = req.body.phone;
     if (req.body.dateOfBirth) updates.dateOfBirth = req.body.dateOfBirth;
     if (req.body.preferredUnit) updates.preferredUnit = req.body.preferredUnit;
+    
+    // FIX: Allow updating profile image
+    if (req.body.profileImage !== undefined) updates.profileImage = req.body.profileImage;
+    
     if (req.body.assignedSpecialistId !== undefined) updates.assignedSpecialistId = req.body.assignedSpecialistId;
 
     if (Object.keys(updates).length > 0) {
