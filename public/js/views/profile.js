@@ -58,12 +58,10 @@ export function renderProfile(root) {
             </label>
         </div>
 
-        ${user.role === 'patient' ? `
-        <div class="panel" style="margin-top:1rem; background:#f8fafc; border:1px solid var(--line)">
-            <h4 style="margin:0 0 0.5rem">Assigned Specialist ID</h4>
-            <div>${user.assignedSpecialistId || 'Not Assigned'}</div>
-        </div>
-        ` : ''}
+        <label style="display:block; margin-bottom:1rem; border-top:1px solid #eee; padding-top:1rem">
+            <span class="muted" style="font-size:.85rem">Change Password (Optional)</span>
+            <input id="pPwd" type="password" class="tools" style="width:100%; margin-top:.25rem" placeholder="Enter new password to change" disabled>
+        </label>
 
         <div style="margin-top:1.5rem; text-align:right">
             <button type="button" id="editBtn">Edit Profile</button>
@@ -78,14 +76,13 @@ export function renderProfile(root) {
   const editBtn = root.querySelector('#editBtn');
   const saveBtn = root.querySelector('#saveBtn');
   const msg = root.querySelector('#pMsg');
-  const inputs = ['pEmail', 'pPhone', 'pHC', 'pDob', 'pImg', 'pUnit'].map(id => root.querySelector('#'+id));
+  const inputs = ['pEmail', 'pPhone', 'pHC', 'pDob', 'pImg', 'pUnit', 'pPwd'].map(id => root.querySelector('#'+id));
   
   const dobInput = root.querySelector('#pDob');
   const today = new Date().toISOString().split('T')[0];
   dobInput.setAttribute('max', today);
   dobInput.setAttribute('min', '1900-01-01');
 
-  // Input Masking Logic (HC Number)
   const hcInput = root.querySelector('#pHC');
   hcInput.addEventListener('input', (e) => {
     let v = e.target.value.replace(/\D/g, ''); 
@@ -95,7 +92,6 @@ export function renderProfile(root) {
     e.target.value = v;
   });
 
-  // Input Masking Logic (Phone)
   const phoneInput = root.querySelector('#pPhone');
   phoneInput.addEventListener('input', (e) => {
     let v = e.target.value.replace(/\D/g, '');
@@ -116,20 +112,15 @@ export function renderProfile(root) {
   form.onsubmit = async (e) => {
       e.preventDefault();
       msg.textContent = 'Saving...';
-      msg.style.color = 'var(--muted)';
-
-      // Validation
-      const hcRaw = hcInput.value.replace(/-/g, '');
-      if (hcRaw.length !== 9) {
-        msg.textContent = "Health Care Number must be 9 digits.";
-        msg.style.color = "red";
-        return;
-      }
-      const phoneRaw = phoneInput.value.replace(/\D/g, '');
-      if (phoneRaw.length < 10) {
-        msg.textContent = "Phone number must be at least 10 digits.";
-        msg.style.color = "red";
-        return;
+      
+      // Role-Based Logic
+      if (user.role === 'patient') {
+         const hcRaw = hcInput.value.replace(/-/g, '');
+         if (hcRaw.length !== 9) {
+             msg.textContent = "Health Care Number must be 9 digits.";
+             msg.style.color = "red";
+             return;
+         }
       }
       
       const payload = {
@@ -138,10 +129,11 @@ export function renderProfile(root) {
           healthCareNumber: hcInput.value,
           dateOfBirth: dobInput.value,
           profileImage: root.querySelector('#pImg').value,
-          preferredUnit: root.querySelector('#pUnit').value // <--- Important!
+          preferredUnit: root.querySelector('#pUnit').value,
+          password: root.querySelector('#pPwd').value // Send new password
       };
       
-      const r = await fetch(`/api/patients/${user.id}`, {
+      const r = await fetch(`/api/auth/profile`, {
           method: 'PUT',
           headers: { 
               'Content-Type': 'application/json',
@@ -151,13 +143,15 @@ export function renderProfile(root) {
       });
 
       if (r.ok) {
-          msg.textContent = 'Saved ✓. Please re-login to see changes.';
+          msg.textContent = 'Saved ✓. Please re-login.';
           msg.style.color = 'var(--ok)';
           inputs.forEach(i => i.disabled = true);
           saveBtn.style.display = 'none';
           editBtn.style.display = 'inline-block';
+          root.querySelector('#pPwd').value = ''; // Clear password field
       } else {
-          msg.textContent = 'Error saving profile.';
+          const d = await r.json();
+          msg.textContent = d.error || 'Error saving profile.';
           msg.style.color = 'var(--bad)';
       }
   };

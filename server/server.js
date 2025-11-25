@@ -15,7 +15,6 @@ const patientsRoutes = require('./routes/patients');
 const alertsRoutes = require('./routes/alerts');
 const reportsRoutes = require('./routes/reports');
 const emailTemplatesRoutes = require('./routes/emailTemplates'); 
-const adminRoutes = require('./routes/admin'); // Ensure this is imported
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, '../public');
@@ -131,7 +130,7 @@ async function handleAPI(req, res) {
     req.query = Object.fromEntries(url.searchParams);
     req.params = {};
 
-    // Auth routes
+    // Auth routes (Public)
     if (pathname === '/api/auth/register' && req.method === 'POST') return await authRoutes.register(req, res);
     if (pathname === '/api/auth/login' && req.method === 'POST') return await authRoutes.login(req, res);
     if (pathname === '/api/auth/logout' && req.method === 'POST') return await authRoutes.logout(req, res);
@@ -145,7 +144,7 @@ async function handleAPI(req, res) {
       });
     });
 
-    // CSRF Protection
+    // CSRF Protection (Security Fix)
     if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
         await new Promise((resolve, reject) => {
             requireCSRF(req, res, (err) => {
@@ -195,35 +194,13 @@ async function handleAPI(req, res) {
     const alertMatch = matchRoute(req.method, pathname, { method: 'PUT', path: '/api/alerts/:id' });
     if (alertMatch) { req.params = alertMatch; return await alertsRoutes.updateAlert(req, res); }
 
-    // KPIs Route (FIXED: Now respects Specialist ID)
+    // KPIs route
     if (pathname === '/api/kpis' && req.method === 'GET') {
-      let patientQuery = {};
-      
-      // Filter patients based on role
-      if (req.user.role === 'specialist') {
-          patientQuery.assignedSpecialistId = req.user.id;
-      }
-
-      const patients = await db.find('patients', patientQuery);
-      const allAlerts = await db.find('alerts');
-      
-      // Filter alerts based on role
-      const openAlerts = allAlerts.filter(a => {
-          const statusMatch = a.status === 'Pending';
-          const userMatch = req.user.role === 'specialist' ? a.specialistId === req.user.id : true;
-          return statusMatch && userMatch;
-      });
-      
+      const patients = await db.find('patients');
+      const alerts = await db.find('alerts');
+      const openAlerts = alerts.filter(a => a.status === 'Pending');
       const critical = openAlerts.filter(a => a.reason && a.reason.toLowerCase().includes('abnormal')).length;
-      
-      return sendJSON(res, 200, { 
-          ok: true, 
-          patients: patients.length, 
-          alerts: openAlerts.length, 
-          critical, 
-          consults: 0, 
-          pending: 0 
-      });
+      return sendJSON(res, 200, { ok: true, patients: patients.length, alerts: openAlerts.length, critical, consults: 0, pending: 0 });
     }
 
     // Feedback routes
@@ -237,22 +214,11 @@ async function handleAPI(req, res) {
     const feedbackDeleteMatch = matchRoute(req.method, pathname, { method: 'DELETE', path: '/api/feedback/:id' });
     if (feedbackDeleteMatch) { req.params = feedbackDeleteMatch; return await alertsRoutes.deleteFeedback(req, res); }
 
-    // Admin Routes
+    // Reports & Settings routes
     if (pathname === '/api/reports') {
         if (req.method === 'POST' && req.user.role === 'admin') return await reportsRoutes.generateReport(req, res);
         if (req.method === 'GET' && req.user.role === 'admin') return await reportsRoutes.getReports(req, res);
     }
-    if (pathname === '/api/admin/users' && req.method === 'GET') return adminRoutes.getUsers(req, res);
-    if (pathname === '/api/admin/create' && req.method === 'POST') return adminRoutes.createProfessional(req, res);
-    
-    // Dynamic Admin Deletion Route (RegEx Match)
-    if (pathname.match(/\/api\/admin\/users\/\w+\/\d+/) && req.method === 'DELETE') {
-        const parts = pathname.split('/');
-        req.params = { role: parts[4], id: parts[5] };
-        return adminRoutes.deleteUser(req, res);
-    }
-
-    // Settings & Logs
     const reportMatch = matchRoute(req.method, pathname, { method: 'GET', path: '/api/reports/:id' });
     if (reportMatch) {
         if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: 'Access forbidden' });
@@ -272,6 +238,7 @@ async function handleAPI(req, res) {
         return await reportsRoutes.getAuditLogs(req, res);
     }
 
+    // Email Templates routes
     if (pathname === '/api/email-templates') {
         if (req.method === 'GET') return await emailTemplatesRoutes.getEmailTemplates(req, res);
         if (req.method === 'PUT' && req.user.role === 'admin') return await emailTemplatesRoutes.updateEmailTemplates(req, res);

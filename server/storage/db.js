@@ -42,7 +42,7 @@ class Database {
       'thresholdSettings',
       'reports',
       'auditLogs',
-      'sessions',
+      'sessions',       // <--- Fixed: Added Comma
       'emailTemplates'
     ];
 

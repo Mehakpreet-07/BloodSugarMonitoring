@@ -2,23 +2,11 @@
   {
     "patientId": 1,
     "specialistId": 1,
-    "triggeredAt": "2025-11-25T03:43:37.296Z",
+    "triggeredAt": "2025-11-25T06:49:56.619Z",
     "reason": "More than 3 abnormal readings in the past 7 days",
-    "status": "Acknowledged",
+    "status": "Pending",
     "id": 1,
-    "createdAt": "2025-11-25T05:43:37.395Z",
-    "updatedAt": "2025-11-25T05:49:54.477Z",
-    "patientName": "Demo Patient"
-  },
-  {
-    "patientId": 2,
-    "specialistId": 1,
-    "triggeredAt": "2025-11-24T05:43:37.296Z",
-    "reason": "Abnormal high reading detected",
-    "status": "Acknowledged",
-    "id": 2,
-    "createdAt": "2025-11-25T05:43:37.397Z",
-    "updatedAt": "2025-11-25T05:51:08.734Z",
-    "patientName": "Bhavni Rampal"
+    "createdAt": "2025-11-25T08:49:56.632Z",
+    "updatedAt": "2025-11-25T08:49:56.632Z"
   }
 ]

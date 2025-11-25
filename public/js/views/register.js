@@ -44,8 +44,7 @@ export function renderRegister(root){
                             <option value="+1" selected>🇨🇦 +1</option>
                             <option value="+1">🇺🇸 +1</option>
                             <option value="+44">🇬🇧 +44</option>
-                            <option value="+91">🇮🇳 +91</option>
-                            </select>
+                        </select>
                         <input id="phone" type="tel" required placeholder="555-123-4567" maxlength="12" style="flex:1; padding: 0.85rem; border-radius: 10px; border: 1px solid #e5e7eb; background: #f9fafb; font-size: 1rem;">
                     </div>
                 </label>
@@ -73,37 +72,28 @@ export function renderRegister(root){
     </div>
   `;
 
-  // 1. Date Restrictions (1900 - Today)
   const today = new Date().toISOString().split('T')[0];
   root.querySelector('#dob').setAttribute('max', today);
 
-  // 2. HC Number Masking (XXX-XXX-XXX)
+  // Input Masking
   const hcInput = root.querySelector('#hc');
   hcInput.addEventListener('input', (e) => {
-    // Remove non-digits
     let v = e.target.value.replace(/\D/g, '');
     if (v.length > 9) v = v.slice(0, 9);
-    
-    // Add dashes logic
     if (v.length > 6) v = v.slice(0,3) + '-' + v.slice(3,6) + '-' + v.slice(6);
     else if (v.length > 3) v = v.slice(0,3) + '-' + v.slice(3);
-    
     e.target.value = v;
   });
 
-  // 3. Phone Number Masking (XXX-XXX-XXXX)
   const phoneInput = root.querySelector('#phone');
   phoneInput.addEventListener('input', (e) => {
     let v = e.target.value.replace(/\D/g, '');
     if (v.length > 10) v = v.slice(0, 10);
-
     if (v.length > 6) v = v.slice(0,3) + '-' + v.slice(3,6) + '-' + v.slice(6);
     else if (v.length > 3) v = v.slice(0,3) + '-' + v.slice(3);
-
     e.target.value = v;
   });
 
-  // 4. Submit
   root.querySelector('#regForm').onsubmit = async (e) => {
     e.preventDefault();
     
@@ -119,7 +109,6 @@ export function renderRegister(root){
         return;
     }
 
-    // COMBINE Country Code + Phone for backend compliance
     const fullPhone = root.querySelector('#countryCode').value + ' ' + phoneInput.value;
 
     const payload = {
@@ -127,7 +116,7 @@ export function renderRegister(root){
         healthCareNumber: hcInput.value,
         email: root.querySelector('#email').value,
         dateOfBirth: root.querySelector('#dob').value,
-        phone: fullPhone, // Sends "+1 555-123-4567"
+        phone: fullPhone, 
         profileImage: root.querySelector('#img').value || undefined,
         password: root.querySelector('#pwd').value
     };

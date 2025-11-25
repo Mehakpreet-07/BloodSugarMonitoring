@@ -34,7 +34,9 @@ export async function renderAdmin(root) {
                                         <td><span class="badge">${u.role}</span></td>
                                         <td>${u.fullName}</td>
                                         <td>${u.email}</td>
-                                        <td>${u.role !== 'admin' ? `<button class="del-btn" data-role="${u.role}" data-id="${u.id}" style="color:red;border:1px solid red;border-radius:4px;cursor:pointer">Del</button>` : '-'}</td>
+                                        <td>
+                                            ${u.role !== 'admin' ? `<button class="del-btn" data-role="${u.role}" data-id="${u.id}" style="color:red;border:1px solid red;background:white;border-radius:4px;cursor:pointer;padding:2px 6px">Delete</button>` : ''}
+                                        </td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -45,13 +47,19 @@ export async function renderAdmin(root) {
                 <section class="panel" style="position:sticky; top:1rem">
                     <h3>Create Professional Account</h3>
                     <form id="createForm" style="display:grid; gap:0.8rem; margin-top:1rem">
-                        <select id="newRole" style="width:100%"><option value="specialist">Specialist</option><option value="staff">Staff</option></select>
+                        <label><span class="muted">Role</span>
+                            <select id="newRole" style="width:100%">
+                                <option value="specialist">Specialist (Doctor)</option>
+                                <option value="staff">Clinic Staff</option>
+                            </select>
+                        </label>
                         <input id="newName" placeholder="Full Name" required style="width:100%">
-                        <input id="newEmail" placeholder="Email" required style="width:100%">
-                        <input id="newPhone" placeholder="Phone" required style="width:100%">
+                        <input id="newEmail" type="email" placeholder="Email Address" required style="width:100%">
+                        <input id="newPhone" type="tel" placeholder="Phone (XXX-XXX-XXXX)" maxlength="14" required style="width:100%">
                         <input id="newWorkId" placeholder="Working ID" required style="width:100%">
+                        <input id="newSpec" placeholder="Specialization (Doctors only)" style="width:100%">
                         <input id="newPwd" type="password" placeholder="Password" required style="width:100%">
-                        <button class="primary">Create</button>
+                        <button class="primary" type="submit">Create Account</button>
                         <p id="formMsg" class="muted"></p>
                     </form>
                 </section>
@@ -60,46 +68,64 @@ export async function renderAdmin(root) {
 
         <div id="viewReports" style="display:none">
             <section class="panel">
-                <h3>Generate Report</h3>
-                <form id="repForm" class="tools">
-                    <input type="date" id="repStart" required>
-                    <input type="date" id="repEnd" required>
-                    <button class="primary">Generate</button>
+                <h3>Generate Clinic Report</h3>
+                <form id="repForm" class="tools" style="margin-bottom:1.5rem">
+                    <label>Start: <input type="date" id="repStart" required></label>
+                    <label>End: <input type="date" id="repEnd" required></label>
+                    <button class="primary">Generate Analysis</button>
                 </form>
-                <div id="repOutput" style="margin-top:1rem; display:none; padding:1rem; border:1px solid #ddd"></div>
+                <div id="repOutput" style="display:none; margin-top:1rem"></div>
             </section>
         </div>
 
         <div id="viewLogs" style="display:none">
             <section class="panel">
-                <h3>Audit Logs</h3>
-                <table class="list">
-                    <thead><tr><th>Time</th><th>Action</th><th>Details</th></tr></thead>
-                    <tbody>
-                        ${logs.slice(0,20).map(l => `<tr><td>${new Date(l.createdAt).toLocaleString()}</td><td>${l.actionType}</td><td>${l.details}</td></tr>`).join('')}
-                    </tbody>
-                </table>
+                <h3>System Audit Logs</h3>
+                <div style="overflow-x:auto; max-height:500px; overflow-y:auto">
+                    <table class="list">
+                        <thead><tr><th>Time</th><th>Action</th><th>Details</th><th>Actor</th></tr></thead>
+                        <tbody>
+                            ${logs.map(l => `
+                                <tr>
+                                    <td style="font-size:0.8rem; white-space:nowrap">${new Date(l.createdAt).toLocaleString()}</td>
+                                    <td><strong>${l.actionType}</strong></td>
+                                    <td>${l.details}</td>
+                                    <td><span class="badge">${l.actorType}</span></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
             </section>
         </div>
     `;
 
-    // Tab Switching
+    // --- LOGIC ---
+
+    const phoneInput = root.querySelector('#newPhone');
+    phoneInput.addEventListener('input', (e) => {
+        let v = e.target.value.replace(/\D/g, ''); 
+        if (v.length > 10) v = v.slice(0, 10);
+        if (v.length > 6) v = v.slice(0,3) + '-' + v.slice(3,6) + '-' + v.slice(6);
+        else if (v.length > 3) v = v.slice(0,3) + '-' + v.slice(3);
+        e.target.value = v;
+    });
+
     const tabs = { tabUsers: 'viewUsers', tabReports: 'viewReports', tabLogs: 'viewLogs' };
     Object.keys(tabs).forEach(btnId => {
         root.querySelector('#'+btnId).onclick = () => {
-            Object.keys(tabs).forEach(k => {
-                root.querySelector('#'+k).classList.remove('primary');
-                document.getElementById(tabs[k]).style.display = 'none';
+            Object.keys(tabs).forEach(id => {
+                root.querySelector('#'+id).classList.remove('primary');
+                document.getElementById(tabs[id]).style.display = 'none';
             });
             root.querySelector('#'+btnId).classList.add('primary');
             document.getElementById(tabs[btnId]).style.display = 'block';
         };
     });
 
-    // Delete User
     root.querySelectorAll('.del-btn').forEach(btn => {
         btn.onclick = async () => {
-            if(!confirm('Delete User?')) return;
+            if(!confirm('Delete user?')) return;
             const role = btn.getAttribute('data-role');
             const id = btn.getAttribute('data-id');
             await fetch(`/api/admin/users/${role}/${id}`, { method: 'DELETE', headers: {'x-csrf-token': store.csrfToken} });
@@ -107,32 +133,99 @@ export async function renderAdmin(root) {
         };
     });
 
-    // Create User
     root.querySelector('#createForm').onsubmit = async (e) => {
         e.preventDefault();
+        const msg = root.querySelector('#formMsg');
+        msg.textContent = 'Creating...';
+        
         const payload = {
             role: root.querySelector('#newRole').value,
             fullName: root.querySelector('#newName').value,
             email: root.querySelector('#newEmail').value,
-            phone: root.querySelector('#newPhone').value,
+            phone: phoneInput.value,
             workingID: root.querySelector('#newWorkId').value,
+            specialization: root.querySelector('#newSpec').value,
             password: root.querySelector('#newPwd').value
         };
-        const res = await fetch('/api/admin/create', { method:'POST', headers:{'Content-Type':'application/json', 'x-csrf-token':store.csrfToken}, body:JSON.stringify(payload)});
-        if(res.ok) renderAdmin(root);
-        else root.querySelector('#formMsg').textContent = 'Error creating user';
+
+        const res = await fetch('/api/admin/create', { 
+            method: 'POST', 
+            headers: {'Content-Type': 'application/json', 'x-csrf-token': store.csrfToken}, 
+            body: JSON.stringify(payload)
+        });
+
+        if(res.ok) {
+            msg.textContent = 'Success!';
+            renderAdmin(root);
+        } else {
+            const d = await res.json();
+            msg.textContent = d.error || 'Error creating user';
+        }
     };
-    
-    // Report
+
+    // FIX: Intelligent Report Display
     root.querySelector('#repForm').onsubmit = async (e) => {
         e.preventDefault();
         const start = root.querySelector('#repStart').value;
         const end = root.querySelector('#repEnd').value;
-        const r = await fetch('/api/reports', { method:'POST', headers:{'Content-Type':'application/json', 'x-csrf-token':store.csrfToken}, body:JSON.stringify({periodStart:start, periodEnd:end}) });
-        const d = await r.json();
         const out = document.getElementById('repOutput');
         out.style.display = 'block';
-        if(d.ok) out.innerHTML = `<strong>Report Generated:</strong> ${d.report.numberOfPatients} Patients Active.`;
-        else out.textContent = d.error;
+        out.innerHTML = 'Loading...';
+
+        const r = await fetch('/api/reports', { 
+            method: 'POST', 
+            headers: {'Content-Type': 'application/json', 'x-csrf-token': store.csrfToken}, 
+            body: JSON.stringify({ periodStart: start, periodEnd: end, reportType: 'Custom' }) 
+        });
+        const d = await r.json();
+        
+        if(d.ok) {
+            const rep = d.report;
+            const triggers = rep.foodActivityTriggers?.topTriggersHigh || [];
+            
+            // Logic: Green if no triggers, Orange if triggers found
+            const hasBadPatterns = triggers.length > 0;
+            const boxColor = hasBadPatterns ? '#fff7ed' : '#f0fdf4'; // Orange vs Green
+            const borderColor = hasBadPatterns ? '#ffedd5' : '#bbf7d0';
+            const textColor = hasBadPatterns ? '#9a3412' : '#166534';
+            const icon = hasBadPatterns ? '⚠️' : '✅';
+            const title = hasBadPatterns ? 'Top High Glucose Triggers' : 'AI Analysis';
+
+            out.innerHTML = `
+                <div style="background:#f8fafc; padding:1.5rem; border-radius:12px; border:1px solid var(--line)">
+                    <h4 style="margin:0 0 1rem 0; border-bottom:1px solid #e2e8f0; padding-bottom:0.5rem">
+                        Report Summary (${rep.periodStart.split('T')[0]} to ${rep.periodEnd.split('T')[0]})
+                    </h4>
+                    
+                    <div class="grid two" style="gap:2rem; margin-bottom:1.5rem">
+                        <div>
+                            <div class="muted" style="font-size:0.85rem">Active Patients</div>
+                            <div style="font-size:1.8rem; font-weight:bold; color:var(--accent)">${rep.numberOfPatients}</div>
+                        </div>
+                        <div>
+                            <div class="muted" style="font-size:0.85rem">Clinic Avg Glucose</div>
+                            <div style="font-size:1.8rem; font-weight:bold">${rep.avgBloodSugarMg || 0} <span style="font-size:1rem; color:#666">mg/dL</span></div>
+                        </div>
+                    </div>
+
+                    <div class="grid two" style="gap:1rem; margin-bottom:1.5rem; background:white; padding:1rem; border-radius:8px; border:1px solid #eee">
+                        <div><strong>Max:</strong> ${rep.maxBloodSugarMg || 0} mg/dL</div>
+                        <div><strong>Min:</strong> ${rep.minBloodSugarMg || 0} mg/dL</div>
+                        <div><strong>Total Readings:</strong> ${rep.totalReadings}</div>
+                    </div>
+
+                    <div style="background:${boxColor}; padding:1rem; border-radius:8px; border:1px solid ${borderColor}">
+                        <h5 style="margin:0 0 0.5rem 0; color:${textColor}">${icon} ${title}</h5>
+                        ${hasBadPatterns ? `
+                            <ul style="margin:0; padding-left:1.2rem; color:${textColor}">
+                                ${triggers.map(t => `<li><strong>${t.trigger}</strong> (${t.correlation}%)</li>`).join('')}
+                            </ul>
+                        ` : `<p style="margin:0; font-size:0.9rem; color:${textColor}">No adverse patterns detected in this period. Clinic status is stable.</p>`}
+                    </div>
+                </div>
+            `;
+        } else {
+            out.textContent = d.error;
+        }
     };
 }

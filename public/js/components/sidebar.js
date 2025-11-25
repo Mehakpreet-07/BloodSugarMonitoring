@@ -19,10 +19,10 @@ export function mountSidebar(node, onNav){
       ];
     }
 
-    // Clinic staff (Added Dashboard)
+    // Clinic staff
     if (role === 'staff') {
       return [
-        { hash:'#/dashboard', label:'Dashboard' }, // <--- ADDED
+        { hash:'#/dashboard', label:'Dashboard' }, 
         { hash:'#/settings',  label:'Settings' },
         { hash:'#/emails',    label:'Email templates' },
         { hash:'#/profile',   label:'Profile' }

@@ -1,15 +1,11 @@
-// public/js/views/dashboard.js
 import { store } from '../state/store.js';
 import { getWeather } from '../api/weather.js';
 import { drawLine } from '../components/chart.js';
-import { rowsHtml } from '../components/table.js';
 import { getKpis } from '../api/kpis.js';
 import { listAlerts } from '../api/alerts.js';
 import { listPatients } from '../api/patients.js';
 import { getThresholds } from '../api/settings.js';
-import { toDisplay, categorizeByThresholds } from '../utils/units.js';
 
-// Helper to format dates
 function formatDate(ts) {
   if (!ts) return '-';
   return new Date(ts).toLocaleString('en-US', {
@@ -19,26 +15,36 @@ function formatDate(ts) {
 
 export async function renderDashboard(root){
   const role = store.user?.role || 'guest';
+  const isStaff = role === 'staff';
   
-  // --- 1. PATIENT VIEW (Redirect to Overview) ---
   if (role === 'patient') {
     location.hash = '#/overview';
     return;
   }
 
-  // --- 2. SPECIALIST / ADMIN / STAFF VIEW ---
-  root.innerHTML = `
-    <section class="panel" id="weatherPanel">
-      <h2>Today’s Weather</h2>
-      <div id="weatherInfo" class="muted">Loading...</div>
-    </section>
+  // --- ROLE-BASED HTML ---
 
+  const kpiSection = `
     <section class="grid kpis" style="margin-top:1rem" id="kpisRow">
       <div class="panel kpi"><h3>Total Patients</h3><div class="val" id="kpiPatients">—</div><div class="muted">Active panel</div></div>
-      <div class="panel kpi"><h3>Open Alerts</h3><div class="val" id="kpiAlerts">—</div><span class="badge b-bad" id="kpiCritical">— critical</span></div>
-      <div class="panel kpi"><h3>Today’s Consults</h3><div class="val" id="kpiConsults">0</div><span class="badge b-warn" id="kpiPending">0 pending</span></div>
+      ${!isStaff ? `
+        <div class="panel kpi"><h3>Open Alerts</h3><div class="val" id="kpiAlerts">—</div><span class="badge b-bad" id="kpiCritical">— critical</span></div>
+        <div class="panel kpi"><h3>Today’s Consults</h3><div class="val" id="kpiConsults">0</div><span class="badge b-warn" id="kpiPending">0 pending</span></div>
+      ` : ''}
     </section>
+  `;
 
+  const mainContent = isStaff ? `
+    <section class="panel" style="margin-top:1rem">
+      <h2 style="margin:0 0 .5rem">Patients Directory</h2>
+      <p class="muted" style="margin-bottom:1rem">Medical data is hidden. Use "View" to manage contact details.</p>
+      <table class="list" id="patientsTable">
+        <thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody id="patientsBody"></tbody>
+      </table>
+      <div class="tools"><a href="#/patients">View Full List</a></div>
+    </section>
+  ` : `
     <section class="grid two" style="margin-top:1rem">
       <div class="panel">
         <h2 style="margin:0 0 .5rem">Readings (Last 7 Days)</h2>
@@ -76,11 +82,15 @@ export async function renderDashboard(root){
       </table>
       <div class="tools"><a href="#/patients">View all Patients</a></div>
     </section>
+  `;
 
-    <div style="margin-top:2rem; padding:1rem; background:#fff3cd; border:1px solid #ffeeba; color:#856404; border-radius:8px; font-size:0.85rem; text-align:center">
-      <strong>Medical Disclaimer:</strong> This system is for informational purposes only and does not constitute medical advice. 
-      Always consult your healthcare provider for diagnosis and treatment.
-    </div>
+  root.innerHTML = `
+    <section class="panel" id="weatherPanel">
+      <h2>Today’s Weather</h2>
+      <div id="weatherInfo" class="muted">Loading...</div>
+    </section>
+    ${kpiSection}
+    ${mainContent}
   `;
 
   // A. Load Weather
@@ -92,103 +102,105 @@ export async function renderDashboard(root){
   // B. Load KPIs
   getKpis().then(k => {
     document.getElementById('kpiPatients').textContent = k.patients;
-    document.getElementById('kpiAlerts').textContent   = k.alerts;
-    document.getElementById('kpiCritical').textContent = `${k.critical} critical`;
+    if (!isStaff) {
+        document.getElementById('kpiAlerts').textContent = k.alerts;
+        document.getElementById('kpiCritical').textContent = `${k.critical} critical`;
+    }
   }).catch(()=>{});
 
-  // C. Load Alerts
-  async function loadAlerts() {
-    const alerts = await listAlerts();
-    const tbody = document.getElementById('alertsBody');
-    
-    if (alerts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" class="muted">No active alerts</td></tr>';
-        return;
+  // C. Load Alerts (Doctors/Admins Only)
+  if (!isStaff) {
+    async function loadAlerts() {
+        const alerts = await listAlerts();
+        const tbody = document.getElementById('alertsBody');
+        if (alerts.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" class="muted">No active alerts</td></tr>';
+            return;
+        }
+        tbody.innerHTML = alerts.slice(0, 5).map(a => `
+        <tr>
+            <td style="font-size:0.85rem">${formatDate(a.triggeredAt)}</td>
+            <td>${a.patientName || 'Unknown'}</td>
+            <td>${a.reason}</td>
+        </tr>
+        `).join('');
     }
-
-    tbody.innerHTML = alerts.slice(0, 5).map(a => `
-      <tr>
-        <td style="font-size:0.85rem">${formatDate(a.triggeredAt)}</td>
-        <td>${a.patientName || 'Unknown'}</td>
-        <td>${a.reason}</td>
-      </tr>
-    `).join('');
+    loadAlerts();
+    document.getElementById('viewAllAlerts').onclick = loadAlerts;
   }
-  loadAlerts();
-  document.getElementById('viewAllAlerts').onclick = loadAlerts;
 
-  // D. Load Patients Snapshot
+  // D. Load Patients List (Staff sees redacted version)
   listPatients().then(ps => {
-    document.getElementById('patientsBody').innerHTML = ps.slice(0, 5).map(p => `
-      <tr>
-        <td>${p.name}</td>
-        <td>${p.last}</td>
-        <td><span class="pill p-${p.cat}">${p.cat}</span></td>
-        <td><a href="#/patients" style="font-size:0.9rem">View</a></td>
-      </tr>
-    `).join('');
+    const tbody = document.getElementById('patientsBody');
+    if (tbody) {
+        tbody.innerHTML = ps.slice(0, 5).map(p => {
+            if (isStaff) {
+                return `<tr><td>${p.name}</td><td>${p.email}</td><td><span class="pill p-Normal">Active</span></td><td><a href="#/patients">View</a></td></tr>`;
+            } else {
+                return `<tr><td>${p.name}</td><td>${p.last}</td><td><span class="pill p-${p.cat}">${p.cat}</span></td><td><a href="#/patients" style="font-size:0.9rem">View</a></td></tr>`;
+            }
+        }).join('');
+    }
   });
 
-  // E. Load Chart Data
-  async function loadChart() {
-    const thr = await getThresholds();
-    const patients = await listPatients();
-    
-    // Fetch readings for top 5 patients
-    const promises = patients.slice(0, 5).map(p => 
-        fetch(`/api/patients/${p.id}/readings`).then(r => r.json()).then(d => {
-            return (d.readings || []).map(r => ({...r, patientName: p.name}));
-        })
-    );
-
-    const results = await Promise.all(promises);
-    let allReadings = results.flat();
-
-    const filterBtn = document.getElementById('applyFilters');
-    
-    filterBtn.onclick = () => {
-        const nameSearch = document.getElementById('filterPatient').value.toLowerCase();
-        const catFilter = document.getElementById('filterCat').value;
+  // E. Load Chart (Doctors/Admins Only)
+  if (!isStaff) {
+      async function loadChart() {
+        const thr = await getThresholds();
+        const patients = await listPatients();
         
-        const getCat = (val) => {
-            if (val <= thr.normalMax) return 'Normal';
-            if (val <= thr.borderlineMax) return 'Borderline';
-            return 'Abnormal';
-        };
+        const promises = patients.slice(0, 5).map(p => 
+            fetch(`/api/patients/${p.id}/readings`).then(r => r.json()).then(d => {
+                return (d.readings || []).map(r => ({...r, patientName: p.name}));
+            })
+        );
 
-        let filtered = allReadings.filter(r => {
-            const cat = getCat(r.valueMgPerdL);
-            const matchesName = !nameSearch || r.patientName.toLowerCase().includes(nameSearch);
-            const matchesCat = !catFilter || cat === catFilter || (catFilter === 'Abnormal' && cat.includes('Abnormal'));
-            const sevenDaysAgo = Date.now() - (7 * 86400000);
-            const ts = new Date(r.recordedAt).getTime();
+        const results = await Promise.all(promises);
+        let allReadings = results.flat();
+
+        const filterBtn = document.getElementById('applyFilters');
+        
+        filterBtn.onclick = () => {
+            const nameSearch = document.getElementById('filterPatient').value.toLowerCase();
+            const catFilter = document.getElementById('filterCat').value;
             
-            return matchesName && matchesCat && ts > sevenDaysAgo;
-        });
+            const getCat = (val) => {
+                if (val <= thr.normalMax) return 'Normal';
+                if (val <= thr.borderlineMax) return 'Borderline';
+                return 'Abnormal';
+            };
 
-        filtered.sort((a,b) => new Date(a.recordedAt) - new Date(b.recordedAt));
+            let filtered = allReadings.filter(r => {
+                const cat = getCat(r.valueMgPerdL);
+                const matchesName = !nameSearch || r.patientName.toLowerCase().includes(nameSearch);
+                const matchesCat = !catFilter || cat === catFilter || (catFilter === 'Abnormal' && cat.includes('Abnormal'));
+                const sevenDaysAgo = Date.now() - (7 * 86400000);
+                const ts = new Date(r.recordedAt).getTime();
+                return matchesName && matchesCat && ts > sevenDaysAgo;
+            });
 
-        const cvs = document.getElementById('trend');
-        const msg = document.getElementById('chartMsg');
-        
-        if (filtered.length === 0) {
-            drawLine('trend', []);
-            cvs.style.display = 'none';
-            msg.style.display = 'block';
-        } else {
-            cvs.style.display = 'block';
-            msg.style.display = 'none';
-            const pts = filtered.map(r => ({
-                x: new Date(r.recordedAt).getTime(),
-                y: r.valueMgPerdL,
-                cat: getCat(r.valueMgPerdL)
-            }));
-            drawLine('trend', pts);
-        }
-    };
+            filtered.sort((a,b) => new Date(a.recordedAt) - new Date(b.recordedAt));
 
-    filterBtn.click();
+            const cvs = document.getElementById('trend');
+            const msg = document.getElementById('chartMsg');
+            
+            if (filtered.length === 0) {
+                drawLine('trend', []);
+                cvs.style.display = 'none';
+                msg.style.display = 'block';
+            } else {
+                cvs.style.display = 'block';
+                msg.style.display = 'none';
+                const pts = filtered.map(r => ({
+                    x: new Date(r.recordedAt).getTime(),
+                    y: r.valueMgPerdL,
+                    cat: getCat(r.valueMgPerdL)
+                }));
+                drawLine('trend', pts);
+            }
+        };
+        filterBtn.click();
+      }
+      loadChart();
   }
-
-  loadChart();
 }

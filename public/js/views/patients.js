@@ -6,36 +6,27 @@ import { toDisplay, categorizeByThresholds }from '../utils/units.js';
 import { rowsHtml }                         from '../components/table.js';
 import { drawLine }                         from '../components/chart.js';
 
-// Internal Helper to send feedback
 async function sendFeedback(patientId, comment) {
   const r = await fetch('/api/feedback', {
     method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'x-csrf-token': store.csrfToken // Security Token
-    },
+    headers: { 'Content-Type': 'application/json', 'x-csrf-token': store.csrfToken },
     body: JSON.stringify({ patientId, comment })
   });
   return r.json();
 }
 
 export async function renderPatients(root){
+  const isStaff = store.user?.role === 'staff';
+
   root.innerHTML = `
     <section class="panel">
-      <h2>Patients</h2>
+      <h2>Patients Directory</h2>
       <div class="tools">
         <input id="q" placeholder="Search patient…">
         <button id="go" class="primary">Search</button>
       </div>
       <table class="list" id="ptbl">
-        <thead>
-          <tr>
-            <th data-k="name">Name ▲▼</th>
-            <th data-k="last">Last reading ▲▼</th>
-            <th data-k="cat">Status ▲▼</th>
-            <th></th>
-          </tr>
-        </thead>
+        <thead><tr><th data-k="name">Name ▲▼</th><th>Email</th><th data-k="cat">Status</th><th></th></tr></thead>
         <tbody id="body"></tbody>
       </table>
     </section>
@@ -43,51 +34,75 @@ export async function renderPatients(root){
     <aside class="drawer" id="drawer" aria-hidden="true">
       <button class="close" id="drawerClose">✕</button>
       <h3 id="dName">Patient</h3>
-      <p class="muted" id="dMeta"></p>
+      
+      <div class="panel" style="background:#f8fafc; border:1px solid var(--line); margin:1rem 0; font-size:0.9rem">
+         <p><strong>Email:</strong> <span id="dEmail">-</span></p>
+         <p><strong>Phone:</strong> <span id="dPhone">-</span></p>
+         <p><strong>HC #:</strong> <span id="dHC">-</span></p>
+         <p><strong>DOB:</strong> <span id="dDOB">-</span></p>
+      </div>
 
-      <h4>Last 7 readings</h4>
-      <canvas id="dChart" style="height:180px"></canvas>
-
-      <h4>Recent Data</h4>
-      <table class="list"><tbody id="dList"></tbody></table>
-
-      <h4 style="margin-top:1.5rem">Give Feedback</h4>
-      <form id="fbForm" style="margin-bottom:1rem">
-        <textarea id="fbText" rows="3" placeholder="Write advice..." style="width:100%; margin-bottom:.5rem; padding:0.5rem;"></textarea>
-        <button class="primary" type="submit">Send Feedback</button>
-        <span id="fbMsg" class="muted" style="margin-left:.5rem; color: red;"></span>
-      </form>
-
-      <h4 style="border-top:1px solid var(--line); padding-top:1rem">Add Manual Reading</h4>
-      <form id="addForm">
-        <div class="row">
-          <input id="val" type="number" placeholder="mg/dL" min="0" required>
-          <input id="note" placeholder="Note (optional)">
+      ${!isStaff ? `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem">
+            <h4 style="margin:0">Glucose History</h4>
+            <select id="dRange" style="font-size:0.8rem; padding:0.2rem">
+                <option value="7">Last 7 Days</option>
+                <option value="30">Last 30 Days</option>
+                <option value="all">All Time</option>
+            </select>
         </div>
-        <button class="primary" type="submit">Add</button>
-      </form>
+        <canvas id="dChart" style="height:180px"></canvas>
+        <div style="overflow-x: auto;">
+            <table class="list"><tbody id="dList"></tbody></table>
+        </div>
+        
+        <h4 style="margin-top:1.5rem">Give Feedback</h4>
+        <form id="fbForm" style="margin-bottom:1rem">
+            <textarea id="fbText" rows="3" placeholder="Write advice..." style="width:100%; margin-bottom:.5rem; padding:0.5rem;"></textarea>
+            <button class="primary" type="submit">Send Feedback</button>
+            <span id="fbMsg" class="muted" style="margin-left:.5rem;"></span>
+        </form>
+
+        <h4 style="border-top:1px solid var(--line); padding-top:1rem">Add Manual Reading</h4>
+        <form id="addForm" style="display:grid; gap:0.5rem">
+            <div class="row" style="display:flex; gap:0.5rem">
+                <input id="val" type="number" placeholder="Value (mg/dL)" min="0" required style="flex:1">
+                <input id="food" placeholder="Food" style="flex:1">
+            </div>
+            <div class="row" style="display:flex; gap:0.5rem">
+                <input id="event" placeholder="Event" style="flex:1">
+                <input id="symp" placeholder="Symptoms" style="flex:1">
+            </div>
+            <button class="primary" type="submit" style="margin-top:0.5rem">Add Entry</button>
+        </form>
+      ` : '<p class="muted" style="margin-top:2rem; text-align:center; padding:1rem; border:1px dashed #ccc">Medical charts and readings are restricted for Staff accounts.</p>'}
     </aside>
   `;
 
   let data = await listPatients();
   let sortKey = 'name', sortDir = 1;
-
+  
   const drawer = root.querySelector('#drawer');
-  const body = root.querySelector('#body');
-
+  
   function renderRows(rows){
-    body.innerHTML = rowsHtml(rows.map(p => [
+    root.querySelector('#body').innerHTML = rowsHtml(rows.map(p => [
       p.name,
-      p.last,
+      p.email,
       { html: `<span class="pill p-${p.cat}">${p.cat}</span>` },
-      { html: `<a href="#" data-id="${p.id}" class="open">Open chart</a>` }
+      { html: `<a href="#" data-id="${p.id}" class="open">View</a>` }
     ]));
-    body.querySelectorAll('a.open').forEach(a=>{
+    
+    root.querySelectorAll('a.open').forEach(a=>{
       a.onclick = async (e)=>{
         e.preventDefault();
         const id = a.getAttribute('data-id');
-        const p  = data.find(x => String(x.id) === String(id));
-        openDrawer(p);
+        const p = data.find(x => String(x.id) === String(id));
+        
+        // Fetch full profile (needed for Staff to see Phone/HC)
+        const profileRes = await fetch(`/api/patients/${id}`, { headers: {'x-csrf-token': store.csrfToken} });
+        const profile = (await profileRes.json()).patient;
+
+        openDrawer(p, profile);
       };
     });
   }
@@ -102,95 +117,88 @@ export async function renderPatients(root){
   root.querySelector('#go').onclick = async ()=>{ data = await listPatients(root.querySelector('#q').value); apply(); };
   apply();
 
-  root.querySelector('#drawerClose').onclick = ()=>{
-    drawer.classList.remove('open');
-    drawer.setAttribute('aria-hidden','true');
-  };
+  root.querySelector('#drawerClose').onclick = ()=>{ drawer.classList.remove('open'); drawer.setAttribute('aria-hidden','true'); };
 
-  async function openDrawer(p){
-    let readings = await getPatientReadings(p.id);
-    const thr  = await getThresholds();
-    const unit = thr.unit;
-    const withCat = r => ({ ...r, cat: categorizeByThresholds(r.valueMgdl, thr) });
-
+  async function openDrawer(p, fullProfile){
+    // Fill Demographics
     root.querySelector('#dName').textContent = p.name;
-    root.querySelector('#dMeta').textContent = `${p.last} • ${p.cat}`;
+    root.querySelector('#dEmail').textContent = fullProfile.email;
+    root.querySelector('#dPhone').textContent = fullProfile.phone || '-';
+    root.querySelector('#dHC').textContent = fullProfile.healthCareNumber || '-';
+    root.querySelector('#dDOB').textContent = fullProfile.dateOfBirth ? fullProfile.dateOfBirth.split('T')[0] : '-';
 
-    const recent = readings.slice(-7).reverse().map(withCat);
-    root.querySelector('#dList').innerHTML = rowsHtml(
-      recent.map(r => [
-        new Date(r.ts).toLocaleString(),
-        toDisplay(r.valueMgdl, unit),
-        { html: `<span class="pill p-${r.cat}">${r.cat}</span>` }
-      ])
-    );
+    if (!isStaff) {
+        let readings = await getPatientReadings(p.id);
+        const thr = await getThresholds();
+        const unit = thr.unit;
+        const withCat = r => ({ ...r, cat: categorizeByThresholds(r.valueMgdl, thr) });
 
-    // FIX: Correctly map 'valueMgdl' for the chart
-    const pts = readings.slice(-7).map(withCat).map(r => ({ 
-        x: r.ts, 
-        y: r.valueMgdl, // <--- This matches the API wrapper property
-        cat: r.cat 
-    }));
-    drawLine('dChart', pts.length ? pts : []);
+        // Chart Filtering Logic
+        const renderChart = () => {
+            const range = root.querySelector('#dRange').value;
+            const now = Date.now();
+            const cutoff = range === 'all' ? 0 : now - (parseInt(range)*86400000);
+            
+            const filtered = readings.filter(r => r.ts >= cutoff).map(withCat);
+            
+            root.querySelector('#dList').innerHTML = rowsHtml(
+                filtered.slice().reverse().slice(0,5).map(r => [
+                    new Date(r.ts).toLocaleString(),
+                    toDisplay(r.valueMgdl, unit),
+                    { html: `<span class="pill p-${r.cat}">${r.cat}</span>` }
+                ])
+            );
+
+            // FIX: Use valueMgdl for chart data
+            drawLine('dChart', filtered.map(r => ({ x: r.ts, y: r.valueMgdl, cat: r.cat })));
+        };
+
+        root.querySelector('#dRange').onchange = renderChart;
+        renderChart();
+
+        // Feedback Form
+        root.querySelector('#fbForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const txt = root.querySelector('#fbText').value.trim();
+            if(!txt) return;
+            await sendFeedback(p.id, txt);
+            root.querySelector('#fbMsg').textContent = 'Sent!';
+            root.querySelector('#fbText').value = '';
+        };
+
+        // Add Reading Form (Fixed Payload)
+        root.querySelector('#addForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const v = Number(root.querySelector('#val').value);
+            if(isNaN(v)) return;
+            
+            // FIX: Send correct payload structure to backend
+            const payload = {
+                patientId: p.id,
+                ts: Date.now(),
+                value: v,          // Backend expects 'value'
+                unit: 'mg/dL',     // Backend expects 'unit'
+                foodIntake: root.querySelector('#food').value,
+                eventActivity: root.querySelector('#event').value,
+                symptoms: root.querySelector('#symp').value,
+                recordedAt: new Date().toISOString()
+            };
+            
+            await addReading(payload);
+            
+            // Refresh data
+            readings = await getPatientReadings(p.id);
+            renderChart();
+            
+            // Clear form
+            root.querySelector('#val').value = '';
+            root.querySelector('#food').value = '';
+            root.querySelector('#event').value = '';
+            root.querySelector('#symp').value = '';
+        };
+    }
 
     drawer.classList.add('open');
     drawer.setAttribute('aria-hidden','false');
-
-    // Wire Feedback Form
-    const fbForm = root.querySelector('#fbForm');
-    const fbText = root.querySelector('#fbText');
-    const fbMsg  = root.querySelector('#fbMsg');
-    
-    fbMsg.textContent = '';
-    fbText.value = '';
-
-    fbForm.onsubmit = async (e) => {
-        e.preventDefault();
-        const comment = fbText.value.trim();
-        if(!comment) return;
-        
-        fbMsg.style.color = 'var(--muted)';
-        fbMsg.textContent = 'Sending...';
-        
-        const res = await sendFeedback(p.id, comment);
-        if(res.ok) {
-            fbMsg.style.color = 'var(--ok)';
-            fbMsg.textContent = 'Sent!';
-            fbText.value = '';
-        } else {
-            fbMsg.style.color = 'var(--bad)';
-            fbMsg.textContent = res.error || 'Error sending feedback.';
-        }
-    };
-
-    // Wire Add Form
-    const form  = root.querySelector('#addForm');
-    form.onsubmit = async (e)=>{
-      e.preventDefault();
-      const v = Number(root.querySelector('#val').value);
-      if (Number.isNaN(v) || v < 0) return;
-
-      const payload = { patientId: p.id, ts: Date.now(), valueMgdl: v, note: root.querySelector('#note').value?.trim() || '' };
-      
-      // Note: This direct call to addReading needs to ensure it sends the token (handled in api/readings.js)
-      const res = await addReading(payload);
-      if (!res || res.ok !== true) return;
-
-      // Add to local list and refresh
-      readings.push({ id: res.reading?.id || Date.now(), ...payload });
-      
-      // Re-run the drawer update to show new point
-      const recentUpdated = readings.slice(-7).reverse().map(withCat);
-      root.querySelector('#dList').innerHTML = rowsHtml(
-        recentUpdated.map(r => [
-          new Date(r.ts).toLocaleString(),
-          toDisplay(r.valueMgdl, unit),
-          { html: `<span class="pill p-${r.cat}">${r.cat}</span>` }
-        ])
-      );
-      
-      const ptsUpdated = readings.slice(-7).map(withCat).map(r => ({ x:r.ts, y:r.valueMgdl, cat:r.cat }));
-      drawLine('dChart', ptsUpdated);
-    };
   }
 }
