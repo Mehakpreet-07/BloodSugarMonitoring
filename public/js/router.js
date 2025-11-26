@@ -6,21 +6,23 @@ import { renderProfile }    from './views/profile.js';
 import { renderOverview }   from './views/overview.js';
 import { renderLogin }      from './views/login.js';
 import { renderRegister }   from './views/register.js';
+import { renderResetPassword } from './views/resetPassword.js'; // ⭐ NEW
 import { renderEmailTemplates } from './views/emailTemplates.js';
 import { renderAdmin }      from './views/admin.js';
 import { store }            from './state/store.js';
 
 const routes = {
-  '#/login'    : renderLogin,
-  '#/register' : renderRegister,
-  '#/dashboard': renderDashboard,
-  '#/patients' : renderPatients,
-  '#/alerts'   : renderAlerts,
-  '#/settings' : renderSettings,
-  '#/profile'  : renderProfile,
-  '#/overview' : renderOverview,
-  '#/emails'   : renderEmailTemplates,
-  '#/admin'    : renderAdmin
+  '#/login'           : renderLogin,
+  '#/register'        : renderRegister,
+  '#/reset-password'  : renderResetPassword, // ⭐ NEW
+  '#/dashboard'       : renderDashboard,
+  '#/patients'        : renderPatients,
+  '#/alerts'          : renderAlerts,
+  '#/settings'        : renderSettings,
+  '#/profile'         : renderProfile,
+  '#/overview'        : renderOverview,
+  '#/emails'          : renderEmailTemplates,
+  '#/admin'           : renderAdmin
 };
 
 function defaultHashFor(user){
@@ -35,10 +37,10 @@ export function router(){
   let hash = location.hash || '#/login';
   const user = store.user;
 
-  const publicRoutes = new Set(['#/login', '#/register']);
+  const publicRoutes = new Set(['#/login', '#/register', '#/reset-password']); // ⭐ UPDATED
 
-  // 1. Not logged in -> Login
-  if (!user && !publicRoutes.has(hash)) {
+  // 1. Not logged in -> Login (except public routes)
+  if (!user && !publicRoutes.has(hash.split('?')[0])) { // ⭐ Split to handle query params
     hash = '#/login';
     if (location.hash !== hash) location.hash = hash;
   }
@@ -52,8 +54,7 @@ export function router(){
     if (location.hash !== hash) location.hash = hash;
   }
 
-  // 3. Admin attempting to access Medical pages (Charts/Alerts)
-  // SRS Compliance: Admins manage users, they don't view medical charts.
+  // 3. Admin attempting to access Medical pages
   if (
     user?.role === 'admin' &&
     (hash === '#/patients' || hash === '#/alerts')
@@ -76,23 +77,25 @@ export function router(){
   }
 
   page.innerHTML = '';
-  (routes[hash] || renderLogin)(page);
+  const baseHash = hash.split('?')[0]; // ⭐ Handle query params in routes
+  (routes[baseHash] || renderLogin)(page);
 
   const map = {
-    '#/login'    : 'Sign in',
-    '#/register' : 'Register',
-    '#/dashboard': 'Dashboard',
-    '#/patients' : 'Patients',
-    '#/alerts'   : 'Alerts',
-    '#/settings' : 'Settings',
-    '#/profile'  : 'Profile',
-    '#/overview' : 'Overview',
-    '#/emails'   : 'Email templates',
-    '#/admin'    : 'User Management'
+    '#/login'           : 'Sign in',
+    '#/register'        : 'Register',
+    '#/reset-password'  : 'Reset Password', // ⭐ NEW
+    '#/dashboard'       : 'Dashboard',
+    '#/patients'        : 'Patients',
+    '#/alerts'          : 'Alerts',
+    '#/settings'        : 'Settings',
+    '#/profile'         : 'Profile',
+    '#/overview'        : 'Overview',
+    '#/emails'          : 'Email templates',
+    '#/admin'           : 'User Management'
   };
 
   const crumbs = document.querySelector('#head .crumbs');
-  if (crumbs) crumbs.textContent = map[hash] || '';
+  if (crumbs) crumbs.textContent = map[baseHash] || '';
 }
 
 export function goto(hash){

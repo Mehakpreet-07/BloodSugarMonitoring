@@ -10,34 +10,39 @@ const {
     isValidPassword 
 } = require('../utils/security');
 const { setSecureCookie, clearCookie } = require('../middleware/auth');
+const { sendEmail } = require('../utils/email');
+const crypto = require('crypto'); // ⭐ FIX: Import crypto directly
 
-// -----------------------------------------
-// REGISTER (Patients Only - Self Service)
-// -----------------------------------------
+// ⭐ FIX: Generate reset token directly in this file
+async function generateResetToken() {
+  const token = crypto.randomBytes(32).toString('hex');
+  const expiry = Date.now() + (60 * 60 * 1000); // 1 hour
+  return { token, expiry };
+}
+
+function isResetTokenValid(expiry) {
+  return Date.now() < expiry;
+}
+
+// REGISTER (Patients Only)
 async function register(req, res) {
   try {
     const { name, email, password, healthCareNumber, dateOfBirth, phone, profileImage } = req.body;
 
-    // 1. Check Required Fields
     if (!name || !email || !password || !healthCareNumber || !dateOfBirth || !phone) {
         return res.status(400).json({ ok: false, error: 'All fields are required.' });
     }
 
-    // 2. Strict Input Validation (SRS 3.2.2.a)
     if (!isValidEmail(email)) return res.status(400).json({ ok: false, error: 'Invalid email format.' });
     if (!isValidPassword(password)) return res.status(400).json({ ok: false, error: 'Password must be 8+ chars.' });
     if (healthCareNumber.length < 9) return res.status(400).json({ ok: false, error: 'Invalid Health Care Number.' });
 
-    // 3. Check Duplicates
     const exists = await db.findOne('patients', { email: email.toLowerCase() });
     if (exists) return res.status(400).json({ ok: false, error: 'Email already registered.' });
 
     const passwordHash = await hashPassword(password);
-    
-    // Assign Default Doctor (First available specialist)
     const defaultSpec = await db.findOne('specialists', {}); 
 
-    // 4. Create Record
     const patient = await db.insert('patients', {
       fullName: name,
       email: email.toLowerCase(),
@@ -66,17 +71,13 @@ async function register(req, res) {
   }
 }
 
-// -----------------------------------------
 // LOGIN
-// -----------------------------------------
 async function login(req, res) {
     const { email, password } = req.body;
 
-    // Rate Limiting
     const limit = loginLimiter.check(email);
     if (!limit.allowed) return res.status(429).json({ ok: false, error: 'Too many attempts. Please wait.' });
     
-    // Search all collections
     let user = await db.findOne('patients', { email: email.toLowerCase() });
     let role = 'patient';
     
@@ -104,30 +105,130 @@ async function login(req, res) {
     res.json({ ok: true, user: { ...user, role, patientId: role==='patient'?user.id:null }, csrfToken });
 }
 
-// -----------------------------------------
 // LOGOUT
-// -----------------------------------------
 async function logout(req, res) {
     clearCookie(res, 'sessionId');
     res.json({ ok: true });
 }
 
-// -----------------------------------------
 // ME (Session Check)
-// -----------------------------------------
 async function me(req, res) {
     if (!req.user) return res.json({ user: null });
     const session = await db.findOne('sessions', { sessionId: req.cookies.sessionId });
     res.json({ user: req.user, csrfToken: session?.csrfToken });
 }
 
-// -----------------------------------------
-// UPDATE PROFILE (Universal & Secure)
-// -----------------------------------------
+// FORGOT PASSWORD (Request Reset)
+async function forgotPassword(req, res) {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ ok: false, error: 'Email required' });
+
+        let user = await db.findOne('patients', { email: email.toLowerCase() });
+        let role = 'patient';
+        if (!user) { user = await db.findOne('specialists', { email: email.toLowerCase() }); role = 'specialist'; }
+        if (!user) { user = await db.findOne('staff', { email: email.toLowerCase() }); role = 'staff'; }
+        if (!user) { user = await db.findOne('administrators', { email: email.toLowerCase() }); role = 'admin'; }
+
+        if (!user) {
+            console.log(`[Password Reset] Email not found: ${email}`);
+            return res.json({ ok: true, message: 'If account exists, reset link sent.' });
+        }
+
+        const { token, expiry } = await generateResetToken();
+        
+        const table = role === 'patient' ? 'patients' : 
+                      role === 'specialist' ? 'specialists' : 
+                      role === 'staff' ? 'staff' : 'administrators';
+        
+        await db.updateById(table, user.id, {
+            resetToken: token,
+            resetTokenExpiry: expiry
+        });
+
+        const resetLink = `http://localhost:3000/#/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+        
+        await sendEmail(
+            user.email,
+            'Password Reset Request - Blood Sugar System',
+            `Hello ${user.fullName || 'User'},\n\nYou requested a password reset. Click the link below to reset your password:\n\n${resetLink}\n\nThis link expires in 1 hour.\n\nIf you didn't request this, ignore this email.\n\nBlood Sugar Monitoring System`
+        );
+
+        console.log(`\n🔐 [Password Reset Link]\n   Email: ${email}\n   Link: ${resetLink}\n`);
+
+        await db.insert('auditLogs', {
+            actorType: 'system',
+            actionType: 'password_reset_requested',
+            details: `Password reset requested for ${email}`,
+            createdAt: new Date().toISOString()
+        });
+
+        res.json({ ok: true, message: 'If account exists, reset link sent.' });
+
+    } catch (err) {
+        console.error('Forgot Password Error:', err);
+        res.status(500).json({ ok: false, error: 'Server error' });
+    }
+}
+
+// RESET PASSWORD (Verify Token & Update)
+async function resetPassword(req, res) {
+    try {
+        const { email, token, newPassword } = req.body;
+
+        if (!email || !token || !newPassword) {
+            return res.status(400).json({ ok: false, error: 'All fields required' });
+        }
+
+        if (!isValidPassword(newPassword)) {
+            return res.status(400).json({ ok: false, error: 'Password must be 8+ characters' });
+        }
+
+        let user = await db.findOne('patients', { email: email.toLowerCase() });
+        let role = 'patient';
+        if (!user) { user = await db.findOne('specialists', { email: email.toLowerCase() }); role = 'specialist'; }
+        if (!user) { user = await db.findOne('staff', { email: email.toLowerCase() }); role = 'staff'; }
+        if (!user) { user = await db.findOne('administrators', { email: email.toLowerCase() }); role = 'admin'; }
+
+        if (!user) {
+            return res.status(400).json({ ok: false, error: 'Invalid or expired token' });
+        }
+
+        if (user.resetToken !== token || !isResetTokenValid(user.resetTokenExpiry)) {
+            return res.status(400).json({ ok: false, error: 'Invalid or expired token' });
+        }
+
+        const passwordHash = await hashPassword(newPassword);
+        const table = role === 'patient' ? 'patients' : 
+                      role === 'specialist' ? 'specialists' : 
+                      role === 'staff' ? 'staff' : 'administrators';
+
+        await db.updateById(table, user.id, {
+            passwordHash,
+            resetToken: null,
+            resetTokenExpiry: null
+        });
+
+        await db.insert('auditLogs', {
+            actorType: role,
+            actorId: user.id,
+            actionType: 'password_reset_completed',
+            details: `Password successfully reset for ${email}`,
+            createdAt: new Date().toISOString()
+        });
+
+        res.json({ ok: true, message: 'Password reset successful' });
+
+    } catch (err) {
+        console.error('Reset Password Error:', err);
+        res.status(500).json({ ok: false, error: 'Server error' });
+    }
+}
+
+// UPDATE PROFILE
 async function updateProfile(req, res) {
     try {
         const { id, role } = req.user;
-        // Pull ONLY safe fields
         const { email, phone, profileImage, fullName, healthCareNumber, dateOfBirth, preferredUnit, fieldOfSpecialization, password } = req.body;
         
         let table = '';
@@ -140,7 +241,6 @@ async function updateProfile(req, res) {
 
         const updates = {};
         
-        // 1. Universal Fields (Everyone has these)
         if (email) {
             if (!isValidEmail(email)) return res.status(400).json({ error: 'Invalid email format' });
             updates.email = email.toLowerCase();
@@ -149,13 +249,11 @@ async function updateProfile(req, res) {
         if (profileImage) updates.profileImage = profileImage;
         if (fullName) updates.fullName = fullName;
 
-        // 2. Password Update Logic (SRS Requirement)
         if (password && password.trim().length > 0) {
              if (!isValidPassword(password)) return res.status(400).json({ error: 'Password must be 8+ chars.' });
              updates.passwordHash = await hashPassword(password);
         }
 
-        // 3. Role-Specific Fields (Strict Separation)
         if (role === 'patient') {
             if (healthCareNumber) updates.healthCareNumber = healthCareNumber;
             if (dateOfBirth) updates.dateOfBirth = dateOfBirth;
@@ -163,15 +261,12 @@ async function updateProfile(req, res) {
         }
         
         if (role === 'specialist') {
-            // Doctors can update their specialization
             if (fieldOfSpecialization) updates.fieldOfSpecialization = fieldOfSpecialization;
         }
 
-        // Perform Update
         if (Object.keys(updates).length > 0) {
             await db.updateById(table, id, updates);
             
-            // Log action
             await db.insert('auditLogs', {
                 actorType: role,
                 actorId: id,
@@ -181,7 +276,6 @@ async function updateProfile(req, res) {
             });
         }
         
-        // Return updated user
         const updated = await db.findById(table, id);
         const { passwordHash, ...safeUser } = updated;
         
@@ -191,4 +285,12 @@ async function updateProfile(req, res) {
     }
 }
 
-module.exports = { register, login, logout, me, updateProfile };
+module.exports = { 
+  register, 
+  login, 
+  logout, 
+  me, 
+  forgotPassword, 
+  resetPassword, 
+  updateProfile 
+};

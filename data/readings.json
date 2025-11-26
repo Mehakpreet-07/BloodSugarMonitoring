@@ -7,10 +7,10 @@
     "foodIntake": "Pizza and soda",
     "eventActivity": "Birthday party",
     "symptoms": "Thirsty",
-    "recordedAt": "2025-11-26T11:12:18.713Z",
+    "recordedAt": "2025-11-26T12:24:40.227Z",
     "id": 1,
-    "createdAt": "2025-11-25T23:12:18.713Z",
-    "updatedAt": "2025-11-25T23:12:18.713Z"
+    "createdAt": "2025-11-26T00:24:40.227Z",
+    "updatedAt": "2025-11-26T00:24:40.227Z"
   },
   {
     "patientId": 1,
@@ -20,10 +20,10 @@
     "foodIntake": "Fast food burger",
     "eventActivity": "Stress meeting",
     "symptoms": "Dizzy",
-    "recordedAt": "2025-11-25T12:12:18.713Z",
+    "recordedAt": "2025-11-25T13:24:40.227Z",
     "id": 2,
-    "createdAt": "2025-11-25T23:12:18.715Z",
-    "updatedAt": "2025-11-25T23:12:18.715Z"
+    "createdAt": "2025-11-26T00:24:40.230Z",
+    "updatedAt": "2025-11-26T00:24:40.230Z"
   },
   {
     "patientId": 1,
@@ -33,10 +33,10 @@
     "foodIntake": "Toast",
     "eventActivity": "Walk",
     "symptoms": "None",
-    "recordedAt": "2025-11-24T07:12:18.713Z",
+    "recordedAt": "2025-11-24T08:24:40.227Z",
     "id": 3,
-    "createdAt": "2025-11-25T23:12:18.718Z",
-    "updatedAt": "2025-11-25T23:12:18.718Z"
+    "createdAt": "2025-11-26T00:24:40.232Z",
+    "updatedAt": "2025-11-26T00:24:40.232Z"
   },
   {
     "patientId": 1,
@@ -46,10 +46,10 @@
     "foodIntake": "Cake",
     "eventActivity": "Sitting",
     "symptoms": "Fatigue",
-    "recordedAt": "2025-11-23T14:12:18.713Z",
+    "recordedAt": "2025-11-23T15:24:40.227Z",
     "id": 4,
-    "createdAt": "2025-11-25T23:12:18.721Z",
-    "updatedAt": "2025-11-25T23:12:18.721Z"
+    "createdAt": "2025-11-26T00:24:40.234Z",
+    "updatedAt": "2025-11-26T00:24:40.234Z"
   },
   {
     "patientId": 1,
@@ -59,10 +59,10 @@
     "foodIntake": "Eggs",
     "eventActivity": "Yoga",
     "symptoms": "None",
-    "recordedAt": "2025-11-22T06:12:18.713Z",
+    "recordedAt": "2025-11-22T07:24:40.227Z",
     "id": 5,
-    "createdAt": "2025-11-25T23:12:18.723Z",
-    "updatedAt": "2025-11-25T23:12:18.723Z"
+    "createdAt": "2025-11-26T00:24:40.236Z",
+    "updatedAt": "2025-11-26T00:24:40.236Z"
   },
   {
     "patientId": 2,
@@ -72,22 +72,152 @@
     "foodIntake": "Cereal",
     "eventActivity": "Work",
     "symptoms": "None",
-    "recordedAt": "2025-11-26T08:12:18.713Z",
+    "recordedAt": "2025-11-26T09:24:40.227Z",
     "id": 6,
-    "createdAt": "2025-11-25T23:12:18.725Z",
-    "updatedAt": "2025-11-25T23:12:18.725Z"
+    "createdAt": "2025-11-26T00:24:40.237Z",
+    "updatedAt": "2025-11-26T00:24:40.237Z"
   },
   {
     "patientId": 2,
-    "valueMgPerdL": 189,
-    "unitEntered": "mmol/L",
+    "valueMgPerdL": 190,
+    "unitEntered": "mg/dL",
     "category": "AbnormalHigh",
-    "foodIntake": "Pastry",
-    "eventActivity": "Meeting",
-    "symptoms": "Headache",
-    "recordedAt": "2025-11-25T09:12:18.713Z",
-    "id": 7,
-    "createdAt": "2025-11-25T23:12:18.728Z",
-    "updatedAt": "2025-11-25T23:12:18.728Z"
+    "foodIntake": "",
+    "eventActivity": "",
+    "symptoms": "",
+    "recordedAt": "2025-11-26T00:31:00.789Z",
+    "id": 8,
+    "createdAt": "2025-11-26T00:31:00.793Z",
+    "updatedAt": "2025-11-26T00:31:00.793Z"
+  },
+  {
+    "patientId": 2,
+    "valueMgPerdL": 150,
+    "unitEntered": "mg/dL",
+    "category": "Borderline",
+    "foodIntake": "",
+    "eventActivity": "",
+    "symptoms": "",
+    "recordedAt": "2025-11-26T00:48:57.852Z",
+    "id": 9,
+    "createdAt": "2025-11-26T00:48:57.856Z",
+    "updatedAt": "2025-11-26T00:48:57.856Z"
+  },
+  {
+    "patientId": 2,
+    "valueMgPerdL": 170,
+    "unitEntered": "mg/dL",
+    "category": "Borderline",
+    "foodIntake": "",
+    "eventActivity": "",
+    "symptoms": "",
+    "recordedAt": "2025-11-26T00:49:00.721Z",
+    "id": 10,
+    "createdAt": "2025-11-26T00:49:00.724Z",
+    "updatedAt": "2025-11-26T00:49:00.724Z"
+  },
+  {
+    "patientId": 2,
+    "valueMgPerdL": 190,
+    "unitEntered": "mg/dL",
+    "category": "AbnormalHigh",
+    "foodIntake": "",
+    "eventActivity": "",
+    "symptoms": "",
+    "recordedAt": "2025-11-26T00:49:04.693Z",
+    "id": 11,
+    "createdAt": "2025-11-26T00:49:04.697Z",
+    "updatedAt": "2025-11-26T00:49:04.697Z"
+  },
+  {
+    "patientId": 2,
+    "valueMgPerdL": 210,
+    "unitEntered": "mg/dL",
+    "category": "AbnormalHigh",
+    "foodIntake": "",
+    "eventActivity": "",
+    "symptoms": "",
+    "recordedAt": "2025-11-26T00:49:06.499Z",
+    "id": 12,
+    "createdAt": "2025-11-26T00:49:06.502Z",
+    "updatedAt": "2025-11-26T00:49:06.502Z"
+  },
+  {
+    "patientId": 2,
+    "valueMgPerdL": 150,
+    "unitEntered": "mg/dL",
+    "category": "Borderline",
+    "foodIntake": "",
+    "eventActivity": "",
+    "symptoms": "",
+    "recordedAt": "2025-11-26T00:49:11.901Z",
+    "id": 13,
+    "createdAt": "2025-11-26T00:49:11.907Z",
+    "updatedAt": "2025-11-26T00:49:11.907Z"
+  },
+  {
+    "patientId": 2,
+    "valueMgPerdL": 130,
+    "unitEntered": "mg/dL",
+    "category": "Normal",
+    "foodIntake": "",
+    "eventActivity": "",
+    "symptoms": "",
+    "recordedAt": "2025-11-26T00:49:13.747Z",
+    "id": 14,
+    "createdAt": "2025-11-26T00:49:13.751Z",
+    "updatedAt": "2025-11-26T00:49:13.751Z"
+  },
+  {
+    "patientId": 2,
+    "valueMgPerdL": 110,
+    "unitEntered": "mg/dL",
+    "category": "Normal",
+    "foodIntake": "",
+    "eventActivity": "",
+    "symptoms": "",
+    "recordedAt": "2025-11-26T00:49:14.692Z",
+    "id": 15,
+    "createdAt": "2025-11-26T00:49:14.695Z",
+    "updatedAt": "2025-11-26T00:49:14.695Z"
+  },
+  {
+    "patientId": 2,
+    "valueMgPerdL": 90,
+    "unitEntered": "mg/dL",
+    "category": "Normal",
+    "foodIntake": "",
+    "eventActivity": "",
+    "symptoms": "",
+    "recordedAt": "2025-11-26T00:49:15.855Z",
+    "id": 16,
+    "createdAt": "2025-11-26T00:49:15.858Z",
+    "updatedAt": "2025-11-26T00:49:15.858Z"
+  },
+  {
+    "patientId": 2,
+    "valueMgPerdL": 70,
+    "unitEntered": "mg/dL",
+    "category": "Normal",
+    "foodIntake": "",
+    "eventActivity": "",
+    "symptoms": "",
+    "recordedAt": "2025-11-26T00:49:17.324Z",
+    "id": 17,
+    "createdAt": "2025-11-26T00:49:17.327Z",
+    "updatedAt": "2025-11-26T00:49:17.327Z"
+  },
+  {
+    "patientId": 2,
+    "valueMgPerdL": 50,
+    "unitEntered": "mg/dL",
+    "category": "AbnormalLow",
+    "foodIntake": "",
+    "eventActivity": "",
+    "symptoms": "",
+    "recordedAt": "2025-11-26T00:49:18.785Z",
+    "id": 18,
+    "createdAt": "2025-11-26T00:49:18.788Z",
+    "updatedAt": "2025-11-26T00:49:18.788Z"
   }
 ]

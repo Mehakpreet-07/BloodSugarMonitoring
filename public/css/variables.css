@@ -1,24 +1,127 @@
-:root{
-  /* light palette */
-  --bg:#f6f8fb;           /* page background */
-  --bg-elev:#ffffff;      /* sidebar/header background */
-  --panel:#ffffff;        /* card background */
-  --line:#dfe6ee;         /* borders or dividers */
-
-  --ink:#111827;          /* main text */
-  --muted:#586a7b;        /* secondary text */
-
+/* ⭐ LIGHT MODE (DEFAULT) */
+:root {
+  --bg:#f6f8fb;
+  --bg-elev:#ffffff;
+  --panel:#ffffff;
+  --line:#dfe6ee;
+  --ink:#111827;
+  --muted:#586a7b;
   --ok:#148f4a;
   --warn:#ae7a00;
   --bad:#c0352b;
-  --accent:#2563eb;       /* links & highlights */
-
-  /* type & rhythm */
+  --accent:#2563eb;
   --font: 15.5px/1.55 system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
   --radius: 14px;
   --radius-lg: 18px;
-  --space-1:.5rem; --space:1rem; --space-2:1.25rem;
-
-  /* softer daylight shadow */
+  --space-1:.5rem; 
+  --space:1rem; 
+  --space-2:1.25rem;
   --shadow: 0 1px 0 rgba(17,24,39,.04), 0 10px 24px -16px rgba(15,23,42,.18);
+}
+
+/* ⭐ DARK MODE - PROPER CONTRAST */
+[data-theme="dark"] {
+  /* Backgrounds */
+  --bg:#0f1419;              /* Main background - very dark */
+  --bg-elev:#1a1f26;         /* Sidebar/Header - slightly lighter */
+  --panel:#1f2937;           /* Cards/Panels - medium dark */
+  --line:#374151;            /* Borders - visible gray */
+  
+  /* Text Colors - HIGH CONTRAST */
+  --ink:#f9fafb;             /* Main text - almost white */
+  --muted:#d1d5db;           /* Secondary text - light gray */
+  
+  /* Status Colors */
+  --ok:#10b981;              /* Green - brighter */
+  --warn:#fbbf24;            /* Yellow - brighter */
+  --bad:#ef4444;             /* Red - brighter */
+  --accent:#60a5fa;          /* Blue - brighter */
+  
+  /* Shadow */
+  --shadow: 0 1px 0 rgba(0,0,0,.3), 0 10px 24px -16px rgba(0,0,0,.5);
+}
+
+/* ⭐ Dark Mode Specific Overrides */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea,
+[data-theme="dark"] button {
+  background: #374151;
+  color: #f9fafb;
+  border-color: #4b5563;
+}
+
+[data-theme="dark"] button.primary {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #1d4ed8;
+}
+
+[data-theme="dark"] button:hover {
+  filter: brightness(1.2);
+}
+
+[data-theme="dark"] .list th,
+[data-theme="dark"] .list td {
+  border-color: #374151;
+}
+
+[data-theme="dark"] .list tr:hover td {
+  background: #374151;
+}
+
+[data-theme="dark"] canvas {
+  background: #1f2937;
+  border-color: #374151;
+}
+
+[data-theme="dark"] .badge {
+  background: rgba(255,255,255,0.1);
+  color: #f9fafb;
+}
+
+[data-theme="dark"] .pill {
+  color: #111827 !important;
+  font-weight: 700;
+}
+
+[data-theme="dark"] .p-Normal {
+  background: #10b981;
+}
+
+[data-theme="dark"] .p-Borderline {
+  background: #fbbf24;
+}
+
+[data-theme="dark"] .p-Abnormal {
+  background: #ef4444;
+}
+
+/* ⭐ Theme Toggle Button */
+#themeToggle {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--panel);
+  border: 2px solid var(--line);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow);
+  z-index: 999;
+}
+
+#themeToggle:hover {
+  transform: scale(1.1);
+  border-color: var(--accent);
+}
+
+#themeToggle:active {
+  transform: scale(0.95);
 }

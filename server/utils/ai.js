@@ -1,11 +1,7 @@
-// AI Pattern Detection Algorithm for Blood Sugar Monitoring
-// Implements frequency-based correlation analysis to identify triggers
+// AI Pattern Detection Algorithm - ENHANCED & FIXED
 
 /**
  * Analyze blood sugar readings and identify patterns/triggers
- * @param {Array} readings - Array of reading objects with foodActivityLogs
- * @param {Object} thresholds - Threshold settings for categorization
- * @returns {Object} Analysis results with top triggers and correlations
  */
 function analyzePatterns(readings, thresholds) {
   if (!readings || readings.length === 0) {
@@ -44,25 +40,32 @@ function analyzePatterns(readings, thresholds) {
     else if (category === 'Normal') normalCount++;
     else if (category === 'Borderline') borderlineCount++;
 
-    // Analyze food/activity logs if present
+    // ⭐ FIX: Extract triggers from reading fields directly
+    const triggers = [];
+    if (reading.foodIntake) triggers.push(...extractTriggers(reading.foodIntake));
+    if (reading.eventActivity) triggers.push(...extractTriggers(reading.eventActivity));
+    if (reading.symptoms) triggers.push(...extractTriggers(reading.symptoms));
+
+    // ⭐ BACKWARD COMPATIBILITY: Also check foodActivityLogs if present
     if (reading.foodActivityLogs && reading.foodActivityLogs.length > 0) {
       for (const log of reading.foodActivityLogs) {
         const description = log.description || '';
-        const triggers = extractTriggers(description);
+        triggers.push(...extractTriggers(description));
+      }
+    }
 
-        for (const trigger of triggers) {
-          if (category === 'AbnormalHigh') {
-            triggerCountsHigh[trigger] = (triggerCountsHigh[trigger] || 0) + 1;
-            triggerTotalHigh[trigger] = (triggerTotalHigh[trigger] || 0) + 1;
-          } else if (category === 'AbnormalLow') {
-            triggerCountsLow[trigger] = (triggerCountsLow[trigger] || 0) + 1;
-            triggerTotalLow[trigger] = (triggerTotalLow[trigger] || 0) + 1;
-          } else {
-            // Track in normal/borderline to calculate correlation
-            triggerTotalHigh[trigger] = (triggerTotalHigh[trigger] || 0);
-            triggerTotalLow[trigger] = (triggerTotalLow[trigger] || 0);
-          }
-        }
+    // Count triggers by category
+    for (const trigger of triggers) {
+      if (category === 'AbnormalHigh') {
+        triggerCountsHigh[trigger] = (triggerCountsHigh[trigger] || 0) + 1;
+        triggerTotalHigh[trigger] = (triggerTotalHigh[trigger] || 0) + 1;
+      } else if (category === 'AbnormalLow') {
+        triggerCountsLow[trigger] = (triggerCountsLow[trigger] || 0) + 1;
+        triggerTotalLow[trigger] = (triggerTotalLow[trigger] || 0) + 1;
+      } else {
+        // Track normal occurrences for correlation calculation
+        triggerTotalHigh[trigger] = (triggerTotalHigh[trigger] || 0);
+        triggerTotalLow[trigger] = (triggerTotalLow[trigger] || 0);
       }
     }
   }
@@ -82,6 +85,7 @@ function analyzePatterns(readings, thresholds) {
         type: 'high'
       };
     })
+    .filter(t => t.correlation >= 30) // ⭐ Only show meaningful correlations
     .sort((a, b) => b.correlation - a.correlation || b.occurrences - a.occurrences)
     .slice(0, 5);
 
@@ -99,6 +103,7 @@ function analyzePatterns(readings, thresholds) {
         type: 'low'
       };
     })
+    .filter(t => t.correlation >= 30) // ⭐ Only show meaningful correlations
     .sort((a, b) => b.correlation - a.correlation || b.occurrences - a.occurrences)
     .slice(0, 5);
 
@@ -117,9 +122,7 @@ function analyzePatterns(readings, thresholds) {
 }
 
 /**
- * Extract potential triggers from food/activity description
- * @param {string} description - Text description
- * @returns {Array} List of identified triggers
+ * Extract potential triggers from text - ENHANCED
  */
 function extractTriggers(description) {
   if (!description) return [];
@@ -127,27 +130,31 @@ function extractTriggers(description) {
   const text = description.toLowerCase();
   const triggers = [];
 
-  // Common food triggers
+  // Enhanced food patterns
   const foodPatterns = [
-    { pattern: /rice|noodle|pasta|bread|wheat/i, trigger: 'high-carb foods' },
-    { pattern: /sugar|candy|sweet|dessert|cake|cookie/i, trigger: 'sugary foods' },
-    { pattern: /fast food|burger|pizza|fries/i, trigger: 'fast food' },
-    { pattern: /soda|juice|beverage/i, trigger: 'sweetened beverages' },
-    { pattern: /alcohol|beer|wine/i, trigger: 'alcohol' },
-    { pattern: /fruit/i, trigger: 'fruit' },
-    { pattern: /coffee|caffeine/i, trigger: 'caffeine' },
-    { pattern: /milk|dairy/i, trigger: 'dairy products' }
+    { pattern: /rice|noodle|pasta|bread|wheat|roti|chapati/i, trigger: 'high-carb foods' },
+    { pattern: /sugar|candy|sweet|dessert|cake|cookie|chocolate/i, trigger: 'sugary foods' },
+    { pattern: /fast food|burger|pizza|fries|fried/i, trigger: 'fast food' },
+    { pattern: /soda|juice|beverage|pop|soft drink/i, trigger: 'sweetened beverages' },
+    { pattern: /alcohol|beer|wine|liquor/i, trigger: 'alcohol' },
+    { pattern: /fruit|banana|apple|orange|mango/i, trigger: 'fruit' },
+    { pattern: /coffee|caffeine|tea/i, trigger: 'caffeine' },
+    { pattern: /milk|dairy|cheese|yogurt/i, trigger: 'dairy products' },
+    { pattern: /meat|chicken|beef|pork/i, trigger: 'protein' },
+    { pattern: /vegetable|salad|greens/i, trigger: 'vegetables' }
   ];
 
-  // Activity/lifestyle triggers
+  // Enhanced activity/lifestyle patterns
   const activityPatterns = [
-    { pattern: /skip.*breakfast|no breakfast/i, trigger: 'skipping breakfast' },
+    { pattern: /skip.*breakfast|no breakfast|missed breakfast/i, trigger: 'skipping breakfast' },
     { pattern: /skip.*meal|no.*meal|missed.*meal/i, trigger: 'skipping meals' },
-    { pattern: /exercise|workout|gym|run|jog/i, trigger: 'exercise' },
-    { pattern: /stress|anxiety|worry/i, trigger: 'stress' },
-    { pattern: /sleep|tired|fatigue/i, trigger: 'poor sleep' },
-    { pattern: /medication|medicine|pill/i, trigger: 'medication timing' },
-    { pattern: /illness|sick|fever/i, trigger: 'illness' }
+    { pattern: /exercise|workout|gym|run|jog|walk/i, trigger: 'exercise' },
+    { pattern: /stress|anxiety|worry|pressure/i, trigger: 'stress' },
+    { pattern: /sleep|tired|fatigue|exhausted/i, trigger: 'poor sleep' },
+    { pattern: /medication|medicine|pill|insulin/i, trigger: 'medication timing' },
+    { pattern: /illness|sick|fever|cold/i, trigger: 'illness' },
+    { pattern: /work|meeting|deadline/i, trigger: 'work stress' },
+    { pattern: /party|celebration|event/i, trigger: 'social events' }
   ];
 
   // Check for food triggers
@@ -164,26 +171,33 @@ function extractTriggers(description) {
     }
   }
 
-  // If no specific triggers found, use generic description
+  // ⭐ FIX: If no specific triggers found, extract meaningful words
   if (triggers.length === 0 && text.length > 0) {
-    triggers.push(text.slice(0, 30));
+    const stopWords = new Set(['the','a','an','and','or','but','in','on','at','to','for','of','with','by','from','up','about','into','through','during','before','after','above','below','between','under','again','further','then','once','here','there','when','where','why','how','all','both','each','few','more','most','other','some','such','no','nor','not','only','own','same','so','than','too','very','can','will','just','should','now']);
+    
+    const words = text.split(/[\s,.;!?]+/).filter(w => w.length > 3 && !stopWords.has(w));
+    if (words.length > 0) {
+      triggers.push(words[0]); // Take first meaningful word
+    }
   }
 
   return [...new Set(triggers)]; // Remove duplicates
 }
 
 /**
- * Categorize a blood sugar reading
- * @param {number} value - Reading value in mg/dL
- * @param {Object} thresholds - Threshold settings
- * @returns {string} Category name
+ * Categorize a blood sugar reading - FIXED
  */
 function categorizeReading(value, thresholds) {
-  if (value < thresholds.abnormalMaxMg) {
+  const normalMax = thresholds.normalMaxMg || thresholds.normalMax || 140;
+  const borderlineMax = thresholds.borderlineMaxMg || thresholds.borderlineMax || 180;
+  const abnormalMaxMg = thresholds.abnormalMaxMg || 70;
+  const abnormalHighMinMg = thresholds.abnormalHighMinMg || 180;
+
+  if (value < abnormalMaxMg) {
     return 'AbnormalLow';
-  } else if (value >= thresholds.abnormalHighMinMg) {
+  } else if (value >= abnormalHighMinMg) {
     return 'AbnormalHigh';
-  } else if (value >= thresholds.normalMinMg && value < thresholds.normalMaxMg) {
+  } else if (value <= normalMax) {
     return 'Normal';
   } else {
     return 'Borderline';
@@ -192,9 +206,6 @@ function categorizeReading(value, thresholds) {
 
 /**
  * Detect if alert should be triggered (3+ abnormal in 7 days)
- * @param {Array} readings - Recent readings
- * @param {Object} thresholds - Threshold settings
- * @returns {boolean} Whether to trigger alert
  */
 function shouldTriggerAlert(readings, thresholds) {
   const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
@@ -214,9 +225,7 @@ function shouldTriggerAlert(readings, thresholds) {
 }
 
 /**
- * Generate AI insights text based on analysis
- * @param {Object} analysis - Results from analyzePatterns
- * @returns {string} Human-readable insights
+ * Generate AI insights text - ENHANCED
  */
 function generateInsights(analysis) {
   const insights = [];
@@ -224,7 +233,7 @@ function generateInsights(analysis) {
   if (analysis.topTriggersHigh.length > 0) {
     const top = analysis.topTriggersHigh[0];
     insights.push(
-      `High glucose levels occur ${top.correlation}% of the time after ${top.trigger}.`
+      `High glucose levels occur ${top.correlation}% of the time after consuming ${top.trigger}.`
     );
   }
 
@@ -237,11 +246,18 @@ function generateInsights(analysis) {
 
   if (analysis.summary.abnormalHigh > analysis.summary.abnormalLow) {
     insights.push(
-      `Most abnormal readings are high glucose. Consider reducing carbohydrate intake.`
+      `Most abnormal readings are high glucose. Consider reducing carbohydrate intake and increasing physical activity.`
     );
   } else if (analysis.summary.abnormalLow > analysis.summary.abnormalHigh) {
     insights.push(
-      `Most abnormal readings are low glucose. Ensure regular meal timing.`
+      `Most abnormal readings are low glucose. Ensure regular meal timing and monitor insulin dosage.`
+    );
+  }
+
+  // ⭐ NEW: Provide positive feedback if doing well
+  if (analysis.summary.normal > (analysis.summary.totalReadings * 0.7)) {
+    insights.push(
+      `Great job! Over 70% of your readings are in the normal range. Keep up the good work!`
     );
   }
 

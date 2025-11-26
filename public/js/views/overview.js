@@ -1,7 +1,7 @@
 import { store } from '../state/store.js';
 import { getPatientReadings } from '../api/patients.js';
 import { getThresholds } from '../api/settings.js';
-import { addReading, updateReading, deleteReading } from '../api/readings.js'; // Added updateReading
+import { addReading, updateReading, deleteReading } from '../api/readings.js';
 import { drawLine } from '../components/chart.js';
 import { rowsHtml } from '../components/table.js';
 import { makeAiAdvice, adviceHtml } from '../utils/ai.js';
@@ -31,23 +31,26 @@ export async function renderOverview(root){
   }
 
   const patientId = me.patientId;
-  const [thr, allReadings, feedbackList] = await Promise.all([
+  let [thr, allReadings, feedbackList] = await Promise.all([
     getThresholds(),
     getPatientReadings(patientId),
     getMyFeedback()
   ]);
 
-  const normalMax = thr.normalMax || thr.normalMaxMg || 140;
-  const borderlineMax = thr.borderlineMax || thr.borderlineMaxMg || 180;
+  // Handle threshold format
+  let thresholds = Array.isArray(thr) ? thr.find(t => t.active) || thr[0] : thr;
+  const normalMax = thresholds.normalMaxMg || thresholds.normalMax || 140;
+  const borderlineMax = thresholds.borderlineMaxMg || thresholds.borderlineMax || 180;
+  const abnormalMaxMg = thresholds.abnormalMaxMg || 70;
+  const abnormalHighMinMg = thresholds.abnormalHighMinMg || 180;
 
-  // FIX: Use Patient's Preferred Unit from Profile
   const userUnit = me.preferredUnit || 'mg/dL';
 
   function getCat(val) {
-    // Thresholds are in mg/dL, so ensure we compare mg/dL
+    if (val < abnormalMaxMg) return 'AbnormalLow';
     if (val <= normalMax) return 'Normal';
     if (val <= borderlineMax) return 'Borderline';
-    return 'Abnormal';
+    return 'AbnormalHigh';
   }
 
   function displayVal(valMg) {
@@ -70,7 +73,8 @@ export async function renderOverview(root){
           <option value="">All Categories</option>
           <option value="Normal">Normal</option>
           <option value="Borderline">Borderline</option>
-          <option value="Abnormal">Abnormal</option>
+          <option value="AbnormalHigh">Abnormal High</option>
+          <option value="AbnormalLow">Abnormal Low</option>
         </select>
       </div>
       <canvas id="myTrend" style="height:260px"></canvas>
@@ -95,11 +99,13 @@ export async function renderOverview(root){
         <h3>AI Insights</h3>
         <div id="aiBox" class="muted" style="margin-top:.6rem"></div>
       </div>
-      <div class="panel">
-        <h3>Thresholds</h3>
+      <div class="panel" id="thresholdDisplay">
+        <h3>Current Thresholds</h3>
         <p class="muted" style="margin-top:.6rem">
           Normal: &le; <strong>${displayVal(normalMax)}</strong><br>
           Borderline: &le; <strong>${displayVal(borderlineMax)}</strong><br>
+          Low: &lt; <strong>${displayVal(abnormalMaxMg)}</strong><br>
+          High: &gt; <strong>${displayVal(abnormalHighMinMg)}</strong><br>
           Unit: <strong>${userUnit}</strong>
         </p>
       </div>
@@ -185,7 +191,6 @@ export async function renderOverview(root){
       const head = `<thead><tr><th>Date</th><th>Value</th><th>Category</th><th>Details</th><th>Actions</th></tr></thead>`;
       tableEl.innerHTML = head + `<tbody>${rowsHtml(tableRows)}</tbody>`;
 
-      // Delete Handlers
       tableEl.querySelectorAll('.del-btn').forEach(btn => {
         btn.onclick = async () => {
             if(!confirm('Delete this reading?')) return;
@@ -197,7 +202,6 @@ export async function renderOverview(root){
         };
       });
 
-      // Edit Handlers
       tableEl.querySelectorAll('.edit-btn').forEach(btn => {
         btn.onclick = () => {
             const id = btn.getAttribute('data-id');
@@ -205,7 +209,6 @@ export async function renderOverview(root){
             if (!r) return;
 
             root.querySelector('#editId').value = r.id;
-            // Pre-fill logic: Convert stored mg/dL to user unit
             const displayV = userUnit === 'mmol/L' ? (r.valueMgdl * 0.0555).toFixed(1) : r.valueMgdl;
             root.querySelector('#val').value = displayV;
             
@@ -225,13 +228,20 @@ export async function renderOverview(root){
     }
 
     const recent = allReadings.sort((a,b)=> a.ts - b.ts).slice(-14);
-    const tips = makeAiAdvice(recent, thr);
+    const tips = makeAiAdvice(recent, { normalMax, borderlineMax, abnormalMaxMg, abnormalHighMinMg });
     root.querySelector('#aiBox').innerHTML = adviceHtml(tips);
   }
 
   rangeSel.onchange = render;
   catSel.onchange = render;
   render();
+
+  // ⭐ Listen for threshold changes
+  const thresholdListener = async (e) => {
+    console.log('Thresholds changed, reloading overview...');
+    renderOverview(root);
+  };
+  document.addEventListener('thresholds:changed', thresholdListener);
 
   const addForm = root.querySelector('#addForm');
   const cancelBtn = root.querySelector('#cancelEdit');
@@ -265,7 +275,7 @@ export async function renderOverview(root){
     const payload = {
       patientId,
       value: v,
-      unit: userUnit, // Send correct unit!
+      unit: userUnit,
       foodIntake: root.querySelector('#food').value,
       eventActivity: root.querySelector('#event').value,
       symptoms: root.querySelector('#symp').value,
@@ -274,7 +284,6 @@ export async function renderOverview(root){
 
     let res;
     if (editId) {
-        // FIXED: Uses secure updateReading function
         res = await updateReading(editId, payload);
     } else {
         res = await addReading(payload);

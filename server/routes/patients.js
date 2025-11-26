@@ -6,6 +6,8 @@ const { fromMgdL } = require('../utils/helpers');
 async function getPatients(req, res) {
   try {
     const query = {};
+    
+    // ⭐ FIX: Specialists only see THEIR assigned patients
     if (req.user.role === 'specialist') {
         query.assignedSpecialistId = req.user.id;
     }
@@ -30,7 +32,6 @@ async function getPatients(req, res) {
         else lastReading = `${diffDays} days ago`;
         
         if (!isStaff) {
-            // Simple status logic for list view
             const sevenDaysAgo = Date.now() - (7 * 86400000);
             const recent = readings.filter(r => new Date(r.recordedAt).getTime() >= sevenDaysAgo);
             const abnormal = recent.filter(r => r.category && r.category.includes('Abnormal')).length;
@@ -62,11 +63,20 @@ async function getPatients(req, res) {
 async function getPatient(req, res) {
   try {
     const patientId = parseInt(req.params.id);
+    
+    // ⭐ SECURITY: Check access rights
     if (req.user.role === 'patient' && patientId !== req.user.patientId) {
       return res.status(403).json({ ok: false, error: 'Access forbidden' });
     }
+
     const patient = await db.findById('patients', patientId);
     if (!patient) return res.status(404).json({ ok: false, error: 'Patient not found' });
+
+    // ⭐ SECURITY: Specialists can only view THEIR assigned patients
+    if (req.user.role === 'specialist' && patient.assignedSpecialistId !== req.user.id) {
+      return res.status(403).json({ ok: false, error: 'You are not assigned to this patient' });
+    }
+
     const { passwordHash, ...patientData } = patient;
     return res.status(200).json({ ok: true, patient: patientData });
   } catch (err) {
@@ -81,11 +91,18 @@ async function getPatientDashboard(req, res) {
     }
 
     const patientId = parseInt(req.params.id);
+    
     if (req.user.role === 'patient' && patientId !== req.user.patientId) {
       return res.status(403).json({ ok: false, error: 'Access forbidden' });
     }
+
     const patient = await db.findById('patients', patientId);
     if (!patient) return res.status(404).json({ ok: false, error: 'Patient not found' });
+
+    // ⭐ SECURITY: Specialists can only view THEIR assigned patients
+    if (req.user.role === 'specialist' && patient.assignedSpecialistId !== req.user.id) {
+      return res.status(403).json({ ok: false, error: 'You are not assigned to this patient' });
+    }
 
     const allReadings = await db.find('readings', { patientId });
     const thirtyDaysAgo = Date.now() - (30 * 86400000);
@@ -94,7 +111,6 @@ async function getPatientDashboard(req, res) {
     const stats = { count: recentReadings.length, unit: patient.preferredUnit || 'mg/dL' }; 
     const thresholds = await db.findOne('thresholdSettings', { active: true });
     
-    // Default fallback if thresholds missing
     const safeThr = thresholds || { normalMax: 140, borderlineMax: 180, abnormalMinMg: 0, abnormalMaxMg: 70 };
     const analysis = analyzePatterns(recentReadings, safeThr); 
     const insights = generateInsights(analysis);
@@ -116,6 +132,7 @@ async function getPatientDashboard(req, res) {
 async function updatePatient(req, res) {
   try {
     const patientId = parseInt(req.params.id);
+    
     if (req.user.role === 'patient' && patientId !== req.user.patientId) {
       return res.status(403).json({ ok: false, error: 'Access forbidden' });
     }
@@ -129,11 +146,17 @@ async function updatePatient(req, res) {
     if (req.body.phone) updates.phone = req.body.phone;
     if (req.body.dateOfBirth) updates.dateOfBirth = req.body.dateOfBirth;
     if (req.body.preferredUnit) updates.preferredUnit = req.body.preferredUnit;
-    
-    // FIX: Allow updating profile image
     if (req.body.profileImage !== undefined) updates.profileImage = req.body.profileImage;
     
-    if (req.body.assignedSpecialistId !== undefined) updates.assignedSpecialistId = req.body.assignedSpecialistId;
+    // ⭐ ADMIN: Can update health care number
+    if (req.body.healthCareNumber && req.user.role === 'admin') {
+        updates.healthCareNumber = req.body.healthCareNumber;
+    }
+    
+    // ⭐ ADMIN ONLY: Update assigned specialist
+    if (req.body.assignedSpecialistId !== undefined && req.user.role === 'admin') {
+        updates.assignedSpecialistId = req.body.assignedSpecialistId;
+    }
 
     if (Object.keys(updates).length > 0) {
       await db.updateById('patients', patientId, updates);

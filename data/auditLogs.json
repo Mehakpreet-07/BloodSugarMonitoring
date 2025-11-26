@@ -1,20 +1,312 @@
 [
   {
-    "actorType": "admin",
-    "actorId": 1,
-    "actionType": "user_deleted",
-    "details": "Deleted user 1 (patient)",
-    "createdAt": "2025-11-25T23:25:08.980Z",
+    "actorType": "patient",
+    "actorId": 2,
+    "actionType": "reading_created",
+    "resourceType": "Reading",
+    "resourceId": 8,
+    "details": "Created reading: 4500 mg/dL (AbnormalHigh)",
+    "createdAt": "2025-11-26T00:29:44.485Z",
     "id": 1,
-    "updatedAt": "2025-11-25T23:25:08.980Z"
+    "updatedAt": "2025-11-26T00:29:44.485Z"
+  },
+  {
+    "actorType": "patient",
+    "actorId": 2,
+    "actionType": "reading_created",
+    "resourceType": "Reading",
+    "resourceId": 9,
+    "details": "Created reading: 4680 mg/dL (AbnormalHigh)",
+    "createdAt": "2025-11-26T00:29:51.641Z",
+    "id": 2,
+    "updatedAt": "2025-11-26T00:29:51.641Z"
+  },
+  {
+    "actorType": "patient",
+    "actorId": 2,
+    "actionType": "profile_updated",
+    "details": "User updated profile details",
+    "createdAt": "2025-11-26T00:30:34.334Z",
+    "id": 3,
+    "updatedAt": "2025-11-26T00:30:34.334Z"
+  },
+  {
+    "actorType": "patient",
+    "actorId": 2,
+    "actionType": "reading_deleted",
+    "resourceType": "Reading",
+    "resourceId": 9,
+    "details": "Deleted reading",
+    "createdAt": "2025-11-26T00:30:47.945Z",
+    "id": 4,
+    "updatedAt": "2025-11-26T00:30:47.945Z"
+  },
+  {
+    "actorType": "patient",
+    "actorId": 2,
+    "actionType": "reading_deleted",
+    "resourceType": "Reading",
+    "resourceId": 8,
+    "details": "Deleted reading",
+    "createdAt": "2025-11-26T00:30:56.604Z",
+    "id": 5,
+    "updatedAt": "2025-11-26T00:30:56.604Z"
+  },
+  {
+    "actorType": "patient",
+    "actorId": 2,
+    "actionType": "reading_created",
+    "resourceType": "Reading",
+    "resourceId": 8,
+    "details": "Created reading: 190 mg/dL (AbnormalHigh)",
+    "createdAt": "2025-11-26T00:31:00.799Z",
+    "id": 6,
+    "updatedAt": "2025-11-26T00:31:00.799Z"
+  },
+  {
+    "actorType": "patient",
+    "actorId": 2,
+    "actionType": "reading_created",
+    "resourceType": "Reading",
+    "resourceId": 9,
+    "details": "Created reading: 23 mg/dL (AbnormalLow)",
+    "createdAt": "2025-11-26T00:31:06.471Z",
+    "id": 7,
+    "updatedAt": "2025-11-26T00:31:06.471Z"
+  },
+  {
+    "actorType": "patient",
+    "actorId": 2,
+    "actionType": "reading_deleted",
+    "resourceType": "Reading",
+    "resourceId": 9,
+    "details": "Deleted reading",
+    "createdAt": "2025-11-26T00:31:30.872Z",
+    "id": 8,
+    "updatedAt": "2025-11-26T00:31:30.872Z"
+  },
+  {
+    "actorType": "patient",
+    "actorId": 2,
+    "actionType": "reading_deleted",
+    "resourceType": "Reading",
+    "resourceId": 7,
+    "details": "Deleted reading",
+    "createdAt": "2025-11-26T00:31:33.079Z",
+    "id": 9,
+    "updatedAt": "2025-11-26T00:31:33.079Z"
   },
   {
     "actorType": "admin",
     "actorId": 1,
-    "actionType": "user_deleted",
-    "details": "Deleted user 1 (specialist)",
-    "createdAt": "2025-11-25T23:25:11.478Z",
-    "id": 2,
-    "updatedAt": "2025-11-25T23:25:11.478Z"
+    "actionType": "patient_updated",
+    "resourceType": "Patient",
+    "resourceId": 1,
+    "details": "Updated patient profile",
+    "createdAt": "2025-11-26T00:31:49.402Z",
+    "id": 10,
+    "updatedAt": "2025-11-26T00:31:49.402Z"
+  },
+  {
+    "actorType": "admin",
+    "actorId": 1,
+    "actionType": "patient_updated",
+    "resourceType": "Patient",
+    "resourceId": 2,
+    "details": "Updated patient profile",
+    "createdAt": "2025-11-26T00:31:52.502Z",
+    "id": 11,
+    "updatedAt": "2025-11-26T00:31:52.502Z"
+  },
+  {
+    "actorType": "admin",
+    "actorId": 1,
+    "actionType": "patient_updated",
+    "resourceType": "Patient",
+    "resourceId": 3,
+    "details": "Updated patient profile",
+    "createdAt": "2025-11-26T00:31:55.100Z",
+    "id": 12,
+    "updatedAt": "2025-11-26T00:31:55.100Z"
+  },
+  {
+    "actorType": "admin",
+    "actorId": 1,
+    "actionType": "system_restore",
+    "details": "System restored from backup",
+    "createdAt": "2025-11-26T00:38:49.729Z",
+    "id": 13,
+    "updatedAt": "2025-11-26T00:38:49.729Z"
+  },
+  {
+    "actorType": "system",
+    "actionType": "password_reset_requested",
+    "details": "Password reset requested for dr@demo.test",
+    "createdAt": "2025-11-26T00:47:30.226Z",
+    "id": 14,
+    "updatedAt": "2025-11-26T00:47:30.227Z"
+  },
+  {
+    "actorType": "specialist",
+    "actorId": 1,
+    "actionType": "password_reset_completed",
+    "details": "Password successfully reset for dr@demo.test",
+    "createdAt": "2025-11-26T00:47:52.073Z",
+    "id": 15,
+    "updatedAt": "2025-11-26T00:47:52.073Z"
+  },
+  {
+    "actorType": "patient",
+    "actorId": 2,
+    "actionType": "reading_created",
+    "resourceType": "Reading",
+    "resourceId": 9,
+    "details": "Created reading: 150 mg/dL (Borderline)",
+    "createdAt": "2025-11-26T00:48:57.862Z",
+    "id": 16,
+    "updatedAt": "2025-11-26T00:48:57.862Z"
+  },
+  {
+    "actorType": "patient",
+    "actorId": 2,
+    "actionType": "reading_created",
+    "resourceType": "Reading",
+    "resourceId": 10,
+    "details": "Created reading: 170 mg/dL (Borderline)",
+    "createdAt": "2025-11-26T00:49:00.728Z",
+    "id": 17,
+    "updatedAt": "2025-11-26T00:49:00.728Z"
+  },
+  {
+    "actorType": "patient",
+    "actorId": 2,
+    "actionType": "reading_created",
+    "resourceType": "Reading",
+    "resourceId": 11,
+    "details": "Created reading: 190 mg/dL (AbnormalHigh)",
+    "createdAt": "2025-11-26T00:49:04.702Z",
+    "id": 18,
+    "updatedAt": "2025-11-26T00:49:04.702Z"
+  },
+  {
+    "actorType": "patient",
+    "actorId": 2,
+    "actionType": "reading_created",
+    "resourceType": "Reading",
+    "resourceId": 12,
+    "details": "Created reading: 210 mg/dL (AbnormalHigh)",
+    "createdAt": "2025-11-26T00:49:06.506Z",
+    "id": 19,
+    "updatedAt": "2025-11-26T00:49:06.506Z"
+  },
+  {
+    "actorType": "patient",
+    "actorId": 2,
+    "actionType": "reading_created",
+    "resourceType": "Reading",
+    "resourceId": 13,
+    "details": "Created reading: 150 mg/dL (Borderline)",
+    "createdAt": "2025-11-26T00:49:11.912Z",
+    "id": 20,
+    "updatedAt": "2025-11-26T00:49:11.912Z"
+  },
+  {
+    "actorType": "patient",
+    "actorId": 2,
+    "actionType": "reading_created",
+    "resourceType": "Reading",
+    "resourceId": 14,
+    "details": "Created reading: 130 mg/dL (Normal)",
+    "createdAt": "2025-11-26T00:49:13.756Z",
+    "id": 21,
+    "updatedAt": "2025-11-26T00:49:13.756Z"
+  },
+  {
+    "actorType": "patient",
+    "actorId": 2,
+    "actionType": "reading_created",
+    "resourceType": "Reading",
+    "resourceId": 15,
+    "details": "Created reading: 110 mg/dL (Normal)",
+    "createdAt": "2025-11-26T00:49:14.698Z",
+    "id": 22,
+    "updatedAt": "2025-11-26T00:49:14.698Z"
+  },
+  {
+    "actorType": "patient",
+    "actorId": 2,
+    "actionType": "reading_created",
+    "resourceType": "Reading",
+    "resourceId": 16,
+    "details": "Created reading: 90 mg/dL (Normal)",
+    "createdAt": "2025-11-26T00:49:15.863Z",
+    "id": 23,
+    "updatedAt": "2025-11-26T00:49:15.863Z"
+  },
+  {
+    "actorType": "patient",
+    "actorId": 2,
+    "actionType": "reading_created",
+    "resourceType": "Reading",
+    "resourceId": 17,
+    "details": "Created reading: 70 mg/dL (Normal)",
+    "createdAt": "2025-11-26T00:49:17.331Z",
+    "id": 24,
+    "updatedAt": "2025-11-26T00:49:17.331Z"
+  },
+  {
+    "actorType": "patient",
+    "actorId": 2,
+    "actionType": "reading_created",
+    "resourceType": "Reading",
+    "resourceId": 18,
+    "details": "Created reading: 50 mg/dL (AbnormalLow)",
+    "createdAt": "2025-11-26T00:49:18.794Z",
+    "id": 25,
+    "updatedAt": "2025-11-26T00:49:18.794Z"
+  },
+  {
+    "actorType": "admin",
+    "actorId": 1,
+    "actionType": "patient_updated",
+    "resourceType": "Patient",
+    "resourceId": 1,
+    "details": "Updated patient profile",
+    "createdAt": "2025-11-26T00:51:20.960Z",
+    "id": 26,
+    "updatedAt": "2025-11-26T00:51:20.960Z"
+  },
+  {
+    "actorType": "admin",
+    "actorId": 1,
+    "actionType": "patient_updated",
+    "resourceType": "Patient",
+    "resourceId": 2,
+    "details": "Updated patient profile",
+    "createdAt": "2025-11-26T00:51:24.852Z",
+    "id": 27,
+    "updatedAt": "2025-11-26T00:51:24.852Z"
+  },
+  {
+    "actorType": "admin",
+    "actorId": 1,
+    "actionType": "patient_updated",
+    "resourceType": "Patient",
+    "resourceId": 2,
+    "details": "Updated patient profile",
+    "createdAt": "2025-11-26T00:51:27.583Z",
+    "id": 28,
+    "updatedAt": "2025-11-26T00:51:27.583Z"
+  },
+  {
+    "actorType": "admin",
+    "actorId": 1,
+    "actionType": "patient_updated",
+    "resourceType": "Patient",
+    "resourceId": 1,
+    "details": "Updated patient profile",
+    "createdAt": "2025-11-26T00:51:30.187Z",
+    "id": 29,
+    "updatedAt": "2025-11-26T00:51:30.188Z"
   }
 ]

@@ -1,58 +1,97 @@
-// this page is for admin and patient settings
+// Settings page with real-time threshold updates
 import { getThresholds, putThresholds } from '../api/settings.js';
-// to get and update the threshold settings
+import { store } from '../state/store.js';
+
 export async function renderSettings(root){
   const t = await getThresholds();
-  // this is the html form for setting the thresholds and units
+  const activeThreshold = Array.isArray(t) ? t.find(th => th.active) || t[0] : t;
+
   root.innerHTML = `
     <section class="panel">
       <h2>Settings</h2>
       <h3 style="margin-top:.5rem">Thresholds & Units</h3>
       <form id="thrForm">
         <div class="tools">
-          <label>Normal max
-            <input id="normalMax" type="number" min="0" required value="${t.normalMax}">
+          <label>Normal max (mg/dL)
+            <input id="normalMax" type="number" min="0" required value="${activeThreshold.normalMaxMg || activeThreshold.normalMax}">
           </label>
-          <label>Borderline max
-            <input id="borderlineMax" type="number" min="0" required value="${t.borderlineMax}">
+          <label>Borderline max (mg/dL)
+            <input id="borderlineMax" type="number" min="0" required value="${activeThreshold.borderlineMaxMg || activeThreshold.borderlineMax}">
           </label>
-          <label>Units
-            <select id="unit">
-              <option value="mgdl" ${t.unit==='mgdl'?'selected':''}>mg/dL</option>
-              <option value="mmol" ${t.unit==='mmol'?'selected':''}>mmol/L</option>
-            </select>
+          <label>Abnormal Low (<)
+            <input id="abnormalMaxMg" type="number" min="0" required value="${activeThreshold.abnormalMaxMg || 70}">
           </label>
-          <button class="primary" type="submit">Save</button>
+          <label>Abnormal High (>)
+            <input id="abnormalHighMinMg" type="number" min="0" required value="${activeThreshold.abnormalHighMinMg || 180}">
+          </label>
+          <button class="primary" type="submit">Save Thresholds</button>
         </div>
         <p id="err" class="muted" role="alert" aria-live="polite"></p>
       </form>
       <p class="muted" style="margin-top:.5rem">
-        Readings ≤ <strong>Normal max</strong> are <span class="pill p-Normal">Normal</span>;
-        between Normal and <strong>Borderline max</strong> are <span class="pill p-Borderline">Borderline</span>;
-        above Borderline max are <span class="pill p-Abnormal">Abnormal</span>.
+        Readings ≤ <strong id="displayNormal">${activeThreshold.normalMaxMg || activeThreshold.normalMax}</strong> mg/dL are <span class="pill p-Normal">Normal</span>;
+        between Normal and <strong id="displayBorderline">${activeThreshold.borderlineMaxMg || activeThreshold.borderlineMax}</strong> mg/dL are <span class="pill p-Borderline">Borderline</span>;
+        below <strong id="displayLow">${activeThreshold.abnormalMaxMg || 70}</strong> mg/dL are <span class="pill p-Abnormal">Abnormal Low</span>;
+        above <strong id="displayHigh">${activeThreshold.abnormalHighMinMg || 180}</strong> mg/dL are <span class="pill p-Abnormal">Abnormal High</span>.
       </p>
     </section>
   `;
-// to easily get elements by their id within the root: means the settings page
+
   const el = id => root.querySelector('#'+id);
   const form = el('thrForm'), err = el('err');
 
-// this is the event when the form is submitted
   form.onsubmit = async (e)=>{
     e.preventDefault();
     err.textContent = '';
+    
     const normalMax = Number(el('normalMax').value);
     const borderlineMax = Number(el('borderlineMax').value);
-    const unit = el('unit').value;
+    const abnormalMaxMg = Number(el('abnormalMaxMg').value);
+    const abnormalHighMinMg = Number(el('abnormalHighMinMg').value);
 
     if (Number.isNaN(normalMax) || Number.isNaN(borderlineMax) || normalMax < 0 || borderlineMax < 0){
-      err.textContent = 'Values must be non-negative numbers.'; return;
+      err.textContent = 'Values must be non-negative numbers.'; 
+      return;
     }
     if (normalMax >= borderlineMax){
-      err.textContent = 'Borderline max must be greater than Normal max.'; return;
+      err.textContent = 'Borderline max must be greater than Normal max.'; 
+      return;
     }
-// calling the api to update the thresholds
-    await putThresholds({ normalMax, borderlineMax, unit });
-    err.textContent = 'Saved ✓';
+
+    try {
+      // Update via API
+      const thresholdId = activeThreshold.id || 1;
+      await fetch(`/api/settings/thresholds/${thresholdId}`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-csrf-token': store.csrfToken 
+        },
+        body: JSON.stringify({ 
+          normalMaxMg: normalMax, 
+          borderlineMaxMg: borderlineMax,
+          abnormalMaxMg,
+          abnormalHighMinMg
+        })
+      });
+
+      // ⭐ Update display immediately
+      document.getElementById('displayNormal').textContent = normalMax;
+      document.getElementById('displayBorderline').textContent = borderlineMax;
+      document.getElementById('displayLow').textContent = abnormalMaxMg;
+      document.getElementById('displayHigh').textContent = abnormalHighMinMg;
+
+      err.textContent = 'Saved ✓ (Refresh Overview to see updated categories)';
+      err.style.color = 'var(--ok)';
+
+      // ⭐ Trigger global event for other components
+      document.dispatchEvent(new CustomEvent('thresholds:changed', {
+        detail: { normalMaxMg: normalMax, borderlineMaxMg: borderlineMax, abnormalMaxMg, abnormalHighMinMg }
+      }));
+
+    } catch (error) {
+      err.textContent = 'Failed to save: ' + error.message;
+      err.style.color = 'var(--bad)';
+    }
   };
 }

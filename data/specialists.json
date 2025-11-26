@@ -1,14 +1,28 @@
 [
   {
+    "fullName": "Dr. Demo Specialist",
+    "email": "dr@demo.test",
+    "phone": "555-123-0002",
+    "workingID": "DOC001",
+    "fieldOfSpecialization": "Endocrinology",
+    "passwordHash": "79cec56a2deb4b14a179454b6056678acf8ee6cc4fd1b967adf7cf643d910072:475600c4e8048c2f39913f2bcd5c4e9d4bef736e5538e08a58ff644d73b2438d1c041abeb8019abce25f45aadbb391aabcc634157993a79ef9e144988d962880",
+    "profileImage": "https://ui-avatars.com/api/?name=Dr+Demo&background=random",
+    "id": 1,
+    "createdAt": "2025-11-26T00:24:40.215Z",
+    "updatedAt": "2025-11-26T00:47:52.070Z",
+    "resetToken": null,
+    "resetTokenExpiry": null
+  },
+  {
     "fullName": "Dr. Sarah Chen",
     "email": "dr.chen@demo.test",
     "phone": "555-123-0003",
     "workingID": "DOC002",
     "fieldOfSpecialization": "Internal Medicine",
-    "passwordHash": "c76ea2d710aee832193053312853d3ad4bcc7f674286a8cae4845321be1f89e4:c72e19c8704b7d835eaa0fbdf3ffc045ee61c1429b7200710fab5eeda760d3398ec73eef1199134a9c1d43f529c26b2d052c9ef8b0a0fc168645d7ce9182f775",
+    "passwordHash": "cbf0ca33d460a2252273f7a621fad624b0cc4f6abb18a6ab79b003aad2d0618b:a25bdc929bbfb0a7e5125ff30a79cfb8a09f1df3d0c7859aa8e2ffc68667ef93a4ef4f519b76115221dcb23c2c9bd1aa96b70217a3b048bc5f1574616755437a",
     "profileImage": "https://ui-avatars.com/api/?name=Dr+Chen&background=random",
     "id": 2,
-    "createdAt": "2025-11-25T23:12:18.702Z",
-    "updatedAt": "2025-11-25T23:12:18.702Z"
+    "createdAt": "2025-11-26T00:24:40.217Z",
+    "updatedAt": "2025-11-26T00:24:40.217Z"
   }
 ]

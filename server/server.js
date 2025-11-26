@@ -6,19 +6,17 @@ const { URL } = require('url');
 const { db } = require('./storage/db');
 const { cookieParser, requireAuth, requireRole, requireCSRF } = require('./middleware/auth');
 
-// Route Handlers
 const authRoutes = require('./routes/auth');
 const readingsRoutes = require('./routes/readings');
 const patientsRoutes = require('./routes/patients');
 const alertsRoutes = require('./routes/alerts');
 const reportsRoutes = require('./routes/reports');
 const emailTemplatesRoutes = require('./routes/emailTemplates'); 
-const adminRoutes = require('./routes/admin'); // Critical: Admin features
+const adminRoutes = require('./routes/admin');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, '../public');
 
-// Helper: Parse JSON Body
 async function parseBody(req) {
   return new Promise((resolve, reject) => {
     let body = '';
@@ -33,7 +31,6 @@ async function parseBody(req) {
   });
 }
 
-// Helper: Send JSON Response
 function sendJSON(res, statusCode, data) {
   res.writeHead(statusCode, { 
       'Content-Type': 'application/json', 
@@ -42,7 +39,6 @@ function sendJSON(res, statusCode, data) {
   res.end(JSON.stringify(data));
 }
 
-// Helper: Serve Static Files
 function serveStatic(req, res) {
   const urlPath = req.url === '/' ? '/index.html' : req.url;
   const filePath = path.normalize(path.join(PUBLIC_DIR, urlPath.split('?')[0]));
@@ -64,7 +60,6 @@ function serveStatic(req, res) {
   });
 }
 
-// Main API Router
 async function handleAPI(req, res) {
   try {
     cookieParser(req, res, () => {});
@@ -83,18 +78,18 @@ async function handleAPI(req, res) {
     if (p === '/api/auth/login' && req.method === 'POST') return await authRoutes.login(req, res);
     if (p === '/api/auth/logout' && req.method === 'POST') return await authRoutes.logout(req, res);
     if (p === '/api/auth/me' && req.method === 'GET') return await authRoutes.me(req, res);
-    if (p === '/api/auth/forgot-password' && req.method === 'POST') return await authRoutes.forgotPassword(req, res);
+    if (p === '/api/auth/forgot-password' && req.method === 'POST') return await authRoutes.forgotPassword(req, res); // ⭐ NEW
+    if (p === '/api/auth/reset-password' && req.method === 'POST') return await authRoutes.resetPassword(req, res); // ⭐ NEW
 
     // --- Middleware Checks ---
-    await new Promise((res, rej) => requireAuth(req, res, (e) => e ? rej(e) : res()));
+    await new Promise((resolve, reject) => requireAuth(req, res, (e) => e ? reject(e) : resolve()));
     
     if (['POST', 'PUT', 'DELETE'].includes(req.method)) {
-        await new Promise((res, rej) => requireCSRF(req, res, (e) => e ? rej(e) : res()));
+        await new Promise((resolve, reject) => requireCSRF(req, res, (e) => e ? reject(e) : resolve()));
     }
 
     // --- Protected Routes ---
     
-    // Profile
     if (p === '/api/auth/profile' && req.method === 'PUT') return authRoutes.updateProfile(req, res);
     
     // Readings
@@ -142,20 +137,18 @@ async function handleAPI(req, res) {
         if (req.method === 'POST') return alertsRoutes.createFeedback(req, res);
     }
     
-    // Admin Routes (Includes Backup/Restore & User Mgmt)
+    // Admin Routes
     if (p === '/api/admin/users' && req.method === 'GET') return adminRoutes.getUsers(req, res);
     if (p === '/api/admin/create' && req.method === 'POST') return adminRoutes.createProfessional(req, res);
     if (p === '/api/admin/backup' && req.method === 'GET') return adminRoutes.getFullBackup(req, res);
     if (p === '/api/admin/restore' && req.method === 'POST') return adminRoutes.restoreBackup(req, res);
     
-    // Admin Update User Route (Added for "Edit" button)
     if (p.match(/\/api\/admin\/users\/\w+\/\d+/) && req.method === 'PUT') {
         const parts = p.split('/');
         req.params = { role: parts[4], id: parts[5] };
         return adminRoutes.updateUser(req, res);
     }
 
-    // Admin Delete User Route
     if (p.match(/\/api\/admin\/users\/\w+\/\d+/) && req.method === 'DELETE') {
         const parts = p.split('/');
         req.params = { role: parts[4], id: parts[5] };
@@ -171,7 +164,6 @@ async function handleAPI(req, res) {
     
     if (p === '/api/kpis' && req.method === 'GET') {
         let patientQuery = {};
-        // Filter patients based on role (Specialist sees own, Admin sees all)
         if (req.user.role === 'specialist') patientQuery.assignedSpecialistId = req.user.id;
         
         const patients = await db.find('patients', patientQuery);
@@ -188,7 +180,10 @@ async function handleAPI(req, res) {
 
     if (p === '/api/settings/thresholds') {
         if(req.method === 'GET') return reportsRoutes.getThresholds(req, res);
-        if(req.method === 'PUT') return reportsRoutes.updateThresholds(req, res);
+    }
+    if (p.match(/\/api\/settings\/thresholds\/\d+/) && req.method === 'PUT') {
+        req.params = { id: p.split('/').pop() };
+        return reportsRoutes.updateThresholds(req, res);
     }
     if (p === '/api/email-templates') {
         if(req.method === 'GET') return emailTemplatesRoutes.getEmailTemplates(req, res);
