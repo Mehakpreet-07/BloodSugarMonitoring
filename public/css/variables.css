@@ -39,6 +39,37 @@
   
   /* Shadow */
   --shadow: 0 1px 0 rgba(0,0,0,.3), 0 10px 24px -16px rgba(0,0,0,.5);
+
+  /* ⭐ Dark Mode Hover & Active States */
+  
+  /* 1. Sidebar Navigation Links */
+  .side .nav a:hover {
+    background: #374151; /* Dark gray to match buttons */
+    color: #f9fafb;
+  }
+  
+  .side .nav a.active {
+    background: rgba(37, 99, 235, 0.2); /* Subtle blue tint for active state */
+    color: #ffffff;
+  }
+
+  /* 2. Table Rows Hover Effect */
+  .list tr:hover td {
+    background: #1f2937; /* Matches the panel color, or slightly lighter #374151 */
+    background: #374151; /* Better contrast against the table background */
+  }
+
+  /* 3. Profile Dropdown Menu Hover */
+  .menu a:hover {
+    background: #374151;
+    color: #f9fafb;
+  }
+
+  /* 4. Avatar Placeholder Background */
+  .avatar .pic {
+    background: #374151;
+    border-color: #4b5563;
+  }
 }
 
 /* ⭐ Dark Mode Specific Overrides */
